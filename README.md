@@ -2,6 +2,7 @@
 
 A modern, full-stack cleaning service booking platform built with Next.js 14, TypeScript, Prisma, and Stripe. Scrubly enables customers to book various cleaning services, from standard home cleaning to commercial office spaces.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/sulimaan0/scrubly)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)
