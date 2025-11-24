@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth-client";
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -32,14 +35,17 @@ export default function LoginPage() {
 
         const userData = await roleRes.json();
 
-        // Redirect based on role
-        let redirectPath = "/dashboard/customer";
-        if (userData.role === "CLEANER") {
-          redirectPath = "/dashboard/cleaner";
-        } else if (userData.role === "ADMIN") {
-          redirectPath = "/dashboard/admin";
-        } else if (userData.role === "SUPER_ADMIN") {
-          redirectPath = "/dashboard/super-admin";
+        // Use callbackUrl if present, otherwise redirect based on role
+        let redirectPath = callbackUrl || "/dashboard/customer";
+
+        if (!callbackUrl) {
+          if (userData.role === "CLEANER") {
+            redirectPath = "/dashboard/cleaner";
+          } else if (userData.role === "ADMIN") {
+            redirectPath = "/dashboard/admin";
+          } else if (userData.role === "SUPER_ADMIN") {
+            redirectPath = "/dashboard/super-admin";
+          }
         }
 
         window.location.href = redirectPath;
@@ -107,5 +113,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

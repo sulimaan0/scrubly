@@ -22,9 +22,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users from auth routes to dashboard
+  // Redirect authenticated users from auth routes to dashboard or callbackUrl
   if (isAuthRoute && sessionToken) {
-    return NextResponse.redirect(new URL("/dashboard/customer", request.url));
+    const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
+    const redirectUrl = callbackUrl || "/dashboard/customer";
+    return NextResponse.redirect(new URL(redirectUrl, request.url));
   }
 
   return NextResponse.next();
