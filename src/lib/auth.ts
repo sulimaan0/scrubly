@@ -11,7 +11,10 @@ export const auth = betterAuth({
   basePath: "/api/auth",
   trustedOrigins: [
     "http://localhost:3000",
+    "https://localhost:3000",
     process.env.NEXT_PUBLIC_APP_URL || "",
+    process.env.BETTER_AUTH_URL || "",
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ].filter(Boolean),
   emailAndPassword: {
     enabled: true,

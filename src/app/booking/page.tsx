@@ -96,6 +96,17 @@ function BookingContent() {
         credentials: "include",
         body: JSON.stringify({ ...formData, price }),
       });
+
+      if (res.status === 401) {
+        // Unauthorized - redirect to login
+        const data = await res.json();
+        setError(data.error || "Please sign in to continue");
+        setTimeout(() => {
+          window.location.href = "/login?callbackUrl=" + encodeURIComponent(window.location.pathname);
+        }, 2000);
+        return;
+      }
+
       const data = await res.json();
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
@@ -104,8 +115,8 @@ function BookingContent() {
         setError(data.error || "Failed to create payment");
       }
     } catch (err) {
-      console.error(err);
-      setError("Something went wrong");
+      console.error("Payment intent error:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
