@@ -36,7 +36,8 @@ export default function RegisterPage() {
       if (result.error) {
         setError(result.error.message || result.error.code || "Registration failed");
       } else {
-        await fetch("/api/users/role", {
+        // Update user role
+        const roleResponse = await fetch("/api/users/role", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -44,9 +45,28 @@ export default function RegisterPage() {
             postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
           }),
         });
-        window.location.href = formData.role === "CLEANER" ? "/dashboard/cleaner" : "/dashboard/customer";
+
+        if (!roleResponse.ok) {
+          setError("Failed to set user role");
+          return;
+        }
+
+        const userData = await roleResponse.json();
+
+        // Redirect based on role
+        let redirectPath = "/dashboard/customer";
+        if (userData.role === "CLEANER") {
+          redirectPath = "/dashboard/cleaner";
+        } else if (userData.role === "ADMIN") {
+          redirectPath = "/dashboard/admin";
+        } else if (userData.role === "SUPER_ADMIN") {
+          redirectPath = "/dashboard/super-admin";
+        }
+
+        window.location.href = redirectPath;
       }
     } catch (err) {
+      console.error("Registration error:", err);
       setError("An error occurred");
     } finally {
       setLoading(false);

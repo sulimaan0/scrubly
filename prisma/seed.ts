@@ -3,7 +3,13 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create admin user
+  console.log("Seeding database...");
+  console.log("\nNOTE: Seed users are created WITHOUT passwords.");
+  console.log("To create admin access:");
+  console.log("1. Register at /register with your email");
+  console.log("2. Update the user role in database to ADMIN or SUPER_ADMIN\n");
+
+  // Create admin user placeholder
   const admin = await prisma.user.upsert({
     where: { email: "admin@scrubly.com" },
     update: {},
@@ -11,7 +17,7 @@ async function main() {
       id: "admin-user-id",
       email: "admin@scrubly.com",
       name: "Admin User",
-      role: "ADMIN",
+      role: "SUPER_ADMIN",
       emailVerified: true,
     },
   });

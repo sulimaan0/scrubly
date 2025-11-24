@@ -24,17 +24,28 @@ export default function LoginPage() {
         setError(result.error.message || "Login failed");
       } else {
         const roleRes = await fetch("/api/users/role");
+
+        if (!roleRes.ok) {
+          setError("Failed to fetch user information");
+          return;
+        }
+
         const userData = await roleRes.json();
 
+        // Redirect based on role
+        let redirectPath = "/dashboard/customer";
         if (userData.role === "CLEANER") {
-          window.location.href = "/dashboard/cleaner";
+          redirectPath = "/dashboard/cleaner";
         } else if (userData.role === "ADMIN") {
-          window.location.href = "/dashboard/admin";
-        } else {
-          window.location.href = "/dashboard/customer";
+          redirectPath = "/dashboard/admin";
+        } else if (userData.role === "SUPER_ADMIN") {
+          redirectPath = "/dashboard/super-admin";
         }
+
+        window.location.href = redirectPath;
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError("An error occurred");
     } finally {
       setLoading(false);
