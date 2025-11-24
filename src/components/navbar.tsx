@@ -21,9 +21,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    router.push("/");
     await signOut();
-    router.refresh();
+    window.location.href = "/";
   };
 
   const isLoggedIn = !isPending && session;

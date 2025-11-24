@@ -45,7 +45,7 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/");
+    window.location.href = "/";
   };
 
   if (isPending || !stats) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
