@@ -8,6 +8,7 @@ async function main() {
     where: { email: "admin@scrubly.com" },
     update: {},
     create: {
+      id: "admin-user-id",
       email: "admin@scrubly.com",
       name: "Admin User",
       role: "ADMIN",
@@ -20,6 +21,7 @@ async function main() {
     where: { email: "cleaner@scrubly.com" },
     update: {},
     create: {
+      id: "cleaner-user-id",
       email: "cleaner@scrubly.com",
       name: "John Cleaner",
       role: "CLEANER",
@@ -47,6 +49,7 @@ async function main() {
     where: { email: "customer@scrubly.com" },
     update: {},
     create: {
+      id: "customer-user-id",
       email: "customer@scrubly.com",
       name: "Jane Customer",
       role: "CUSTOMER",
