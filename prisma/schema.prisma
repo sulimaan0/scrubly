@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          Role      @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+
+  // Customer relations
+  bookings      Booking[] @relation("CustomerBookings")
+
+  // Cleaner relations
+  cleanerProfile CleanerProfile?
+  acceptedJobs   Booking[]       @relation("CleanerBookings")
+
+  // Notifications
+  notifications  Notification[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model CleanerProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio          String?
+  hourlyRate   Float    @default(25)
+  experience   Int      @default(0)
+  verified     Boolean  @default(false)
+  availability Json?
+  serviceAreas String[]
+  rating       Float    @default(0)
+  totalJobs    Int      @default(0)
+  postcode     String?
+  latitude     Float?
+  longitude    Float?
+  radiusMiles  Float    @default(10)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  customerId      String
+  customer        User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  cleanerId       String?
+  cleaner         User?         @relation("CleanerBookings", fields: [cleanerId], references: [id])
+  
+  status          BookingStatus @default(PENDING)
+  
+  // Location
+  postcode        String
+  address         String
+  city            String
+  latitude        Float?
+  longitude       Float?
+  
+  // Service details
+  serviceType     ServiceType
+  propertyType    PropertyType
+  bedrooms        Int
+  bathrooms       Int
+  extras          String[]
+  instructions    String?
+  
+  // Scheduling
+  date            DateTime
+  timeSlot        String
+  duration        Int
+  
+  // Payment
+  price           Float
+  paymentStatus   PaymentStatus @default(PENDING)
+  stripePaymentId String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  CUSTOMER
+  CLEANER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  discountType    DiscountType
+  discountValue   Float
+  maxUses         Int?
+  usedCount       Int       @default(0)
+  minOrderAmount  Float?
+  expiresAt       DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum ServiceType {
+  STANDARD
+  DEEP
+  MOVE_IN_OUT
+  OFFICE
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  STUDIO
+  OFFICE
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_ACCEPTED
+  BOOKING_COMPLETED
+  BOOKING_CANCELLED
+  PAYMENT_RECEIVED
+  SYSTEM
+}
