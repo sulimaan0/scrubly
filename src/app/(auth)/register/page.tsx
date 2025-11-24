@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { signUp } from "@/lib/auth-client";
+import { signUp, signIn } from "@/lib/auth-client";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,10 +34,27 @@ export default function RegisterPage() {
       if (result.error) {
         setError(result.error.message || result.error.code || "Registration failed");
       } else {
+        // Sign in immediately after signup to ensure session is established
+        const signInResult = await signIn.email({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInResult.error) {
+          setError("Registration successful but auto-login failed. Please sign in.");
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 2000);
+          return;
+        }
+
         // Update user role
         const roleResponse = await fetch("/api/users/role", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
           body: JSON.stringify({
             role: formData.role,
             postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
@@ -63,6 +78,7 @@ export default function RegisterPage() {
           redirectPath = "/dashboard/super-admin";
         }
 
+        // Use window.location.href for full page reload to ensure session is active
         window.location.href = redirectPath;
       }
     } catch (err) {
