@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,21 +34,36 @@ function BookingContent() {
   const [error, setError] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 
-  const [formData, setFormData] = useState({
-    postcode: searchParams.get("postcode") || "",
-    serviceType: "STANDARD" as "STANDARD" | "DEEP" | "MOVE_IN_OUT" | "OFFICE",
-    propertyType: "APARTMENT" as "APARTMENT" | "HOUSE" | "STUDIO" | "OFFICE",
-    bedrooms: 1,
-    bathrooms: 1,
-    desks: 0,
-    meetingRooms: 0,
-    restrooms: 1,
-    extras: [] as string[],
-    address: "",
-    city: "",
-    date: "",
-    timeSlot: "",
-    instructions: "",
+  // Initialize form data - check for saved booking first, then URL params
+  const [formData, setFormData] = useState(() => {
+    // Check if there's a pending booking from before auth
+    if (typeof window !== 'undefined') {
+      const pendingBooking = sessionStorage.getItem('pendingBooking');
+      if (pendingBooking) {
+        sessionStorage.removeItem('pendingBooking');
+        const saved = JSON.parse(pendingBooking);
+        // Don't include price in formData
+        const { price, ...bookingData } = saved;
+        return bookingData;
+      }
+    }
+
+    return {
+      postcode: searchParams.get("postcode") || "",
+      serviceType: "STANDARD" as "STANDARD" | "DEEP" | "MOVE_IN_OUT" | "OFFICE",
+      propertyType: "APARTMENT" as "APARTMENT" | "HOUSE" | "STUDIO" | "OFFICE",
+      bedrooms: 1,
+      bathrooms: 1,
+      desks: 0,
+      meetingRooms: 0,
+      restrooms: 1,
+      extras: [] as string[],
+      address: "",
+      city: "",
+      date: "",
+      timeSlot: "",
+      instructions: "",
+    };
   });
 
   const price = calculatePrice(
@@ -62,6 +77,17 @@ function BookingContent() {
       restrooms: formData.restrooms,
     } : undefined
   );
+
+  // If user returned from registration with a saved booking, go to review step
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const pendingBooking = sessionStorage.getItem('pendingBooking');
+      if (pendingBooking && formData.date && formData.address) {
+        // User has complete booking data, go to review step
+        setStep(3);
+      }
+    }
+  }, []); // Only run on mount
 
   const validateStep = () => {
     setError("");
@@ -98,11 +124,13 @@ function BookingContent() {
       });
 
       if (res.status === 401) {
-        // Unauthorized - redirect to login
+        // Unauthorized - redirect to register for new bookings
         const data = await res.json();
-        setError(data.error || "Please sign in to continue");
+        setError(data.error || "Please create an account or sign in to continue");
         setTimeout(() => {
-          window.location.href = "/login?callbackUrl=" + encodeURIComponent(window.location.pathname);
+          // Save booking details to sessionStorage so they can be restored after auth
+          sessionStorage.setItem('pendingBooking', JSON.stringify({ ...formData, price }));
+          window.location.href = "/register?callbackUrl=" + encodeURIComponent(window.location.pathname);
         }, 2000);
         return;
       }
@@ -316,7 +344,7 @@ function BookingContent() {
                               ...formData,
                               extras: checked
                                 ? [...formData.extras, key]
-                                : formData.extras.filter((e) => e !== key),
+                                : formData.extras.filter((e: string) => e !== key),
                             });
                           }}
                         />
@@ -536,7 +564,7 @@ function BookingContent() {
                 {formData.extras.length > 0 && (
                   <div className="flex justify-between py-2 border-b border-border/50">
                     <span className="text-muted-foreground">Extras</span>
-                    <span className="capitalize">{formData.extras.map(e => e.replace(/-/g, " ")).join(", ")}</span>
+                    <span className="capitalize">{formData.extras.map((e: string) => e.replace(/-/g, " ")).join(", ")}</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-4">
@@ -657,7 +685,7 @@ function BookingContent() {
                     <div className="pt-3 border-t">
                       <div className="text-muted-foreground mb-2">Extras</div>
                       <div className="space-y-1">
-                        {formData.extras.map((extra) => (
+                        {formData.extras.map((extra: string) => (
                           <div key={extra} className="flex justify-between">
                             <span className="capitalize">{extra.replace(/-/g, " ")}</span>
                             <span>+{formatPrice(EXTRAS_PRICES[extra] || OFFICE_EXTRAS_PRICES[extra] || 0)}</span>
