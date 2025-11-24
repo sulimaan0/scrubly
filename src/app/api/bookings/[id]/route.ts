@@ -16,6 +16,16 @@ export async function PATCH(
   const body = await req.json();
   const { status, cleanerId } = body;
 
+  // Get the current user's role from the database
+  const currentUser = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if (!currentUser) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   // Get the existing booking first
   const existingBooking = await db.booking.findUnique({
     where: { id },
@@ -29,7 +39,7 @@ export async function PATCH(
   // Authorization check for cancellations
   if (status === "CANCELLED") {
     // Customers can only cancel their own bookings
-    if (session.user.role === "CUSTOMER" && existingBooking.customerId !== session.user.id) {
+    if (currentUser.role === "CUSTOMER" && existingBooking.customerId !== session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
