@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, ChevronDown, Home, Calendar, LayoutDashboard, Settings, User, LogOut, Sparkles, Building2, Users, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "@/lib/auth-client";
@@ -17,15 +17,33 @@ import {
 
 export function Navbar() {
   const router = useRouter();
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending, error } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Handle client-side hydration
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Refresh session on window focus to catch auth state changes
+  useEffect(() => {
+    const handleFocus = () => {
+      // Trigger a re-render by forcing session refresh
+      router.refresh();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [router]);
 
   const handleSignOut = async () => {
     await signOut();
     window.location.href = "/";
   };
 
-  const isLoggedIn = !isPending && session;
+  // Don't show auth state until client has mounted to prevent hydration mismatch
+  const isLoggedIn = hasMounted && !isPending && session && !error;
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-border/40">
@@ -95,7 +113,7 @@ export function Navbar() {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-4">
-            {isPending ? (
+            {!hasMounted || isPending ? (
               <div className="h-9 w-20 bg-muted animate-pulse rounded-lg" />
             ) : isLoggedIn ? (
               <DropdownMenu>
