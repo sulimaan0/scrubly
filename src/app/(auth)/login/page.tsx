@@ -15,22 +15,63 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
+
+  // Show last login attempt info on mount
+  useState(() => {
+    if (typeof window !== 'undefined') {
+      const lastError = localStorage.getItem('lastLoginError');
+      const lastResult = localStorage.getItem('lastLoginResult');
+      if (lastError) {
+        console.log("[LOGIN] Previous login error:", lastError);
+      }
+      if (lastResult) {
+        console.log("[LOGIN] Previous login result:", lastResult);
+        setDebugInfo(lastResult);
+      }
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("[LOGIN] Form submitted");
     console.log("[LOGIN] Callback URL:", callbackUrl);
+    console.log("[LOGIN] Email:", email);
+
+    // Store in localStorage for debugging
+    localStorage.setItem('lastLoginAttempt', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      email,
+      callbackUrl
+    }));
+
     setLoading(true);
     setError("");
 
     try {
       console.log("[LOGIN] Calling signIn.email");
       const result = await signIn.email({ email, password });
-      console.log("[LOGIN] SignIn result:", { error: result.error, data: result.data });
+      console.log("[LOGIN] SignIn result:", JSON.stringify({
+        hasError: !!result.error,
+        errorMessage: result.error?.message,
+        errorCode: result.error?.code,
+        hasData: !!result.data
+      }, null, 2));
+
+      localStorage.setItem('lastLoginResult', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        hasError: !!result.error,
+        errorMessage: result.error?.message,
+        errorCode: result.error?.code,
+        hasData: !!result.data
+      }));
 
       if (result.error) {
         console.error("[LOGIN] SignIn failed:", result.error);
-        setError(result.error.message || "Login failed");
+        const errorMsg = `Login failed: ${result.error.message || result.error.code || 'Unknown error'}`;
+        console.error("[LOGIN]", errorMsg);
+        setError(errorMsg);
+        localStorage.setItem('lastLoginError', errorMsg);
       } else {
         console.log("[LOGIN] SignIn successful, fetching user role");
         const roleRes = await fetch("/api/users/role");
@@ -84,7 +125,13 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl">
-              {error}
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          {debugInfo && !error && (
+            <div className="p-3 text-xs text-gray-600 bg-gray-50 rounded-xl font-mono">
+              <strong>Last attempt:</strong> {debugInfo}
             </div>
           )}
 
