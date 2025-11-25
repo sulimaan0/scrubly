@@ -23,6 +23,8 @@ const getBaseURL = () => {
   return "http://localhost:3000";
 };
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
@@ -38,6 +40,13 @@ export const auth = betterAuth({
     process.env.BETTER_AUTH_URL || "",
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ].filter(Boolean),
+  advanced: {
+    cookiePrefix: "better-auth",
+    useSecureCookies: isProduction,
+    crossSubDomainCookies: {
+      enabled: false,
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Set to true to require email verification before login
