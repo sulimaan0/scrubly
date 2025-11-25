@@ -5,8 +5,10 @@ export async function middleware(request: NextRequest) {
 
   console.log("[MIDDLEWARE] Request to:", pathname);
 
-  // Get session token from cookies - check both possible cookie names
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value ||
+  // Get session token from cookies - check all possible cookie names
+  // In production with useSecureCookies, the cookie has __Secure- prefix
+  const sessionToken = request.cookies.get("__Secure-better-auth.session_token")?.value ||
+                      request.cookies.get("better-auth.session_token")?.value ||
                       request.cookies.get("better-auth.session-token")?.value;
 
   console.log("[MIDDLEWARE] Session token found:", !!sessionToken);
