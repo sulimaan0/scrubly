@@ -101,6 +101,12 @@ function LoginForm() {
         }
 
         console.log("[LOGIN] Redirecting to:", redirectPath);
+        console.log("[LOGIN] Waiting 500ms for cookies to be set...");
+
+        // Wait for cookies to be fully set before redirecting
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        console.log("[LOGIN] Performing redirect now");
         window.location.href = redirectPath;
       }
     } catch (err) {

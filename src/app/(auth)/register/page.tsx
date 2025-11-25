@@ -109,10 +109,10 @@ function RegisterForm() {
         }
 
         console.log("[REGISTER] Redirecting to:", redirectPath);
-        console.log("[REGISTER] Waiting 100ms for cookies to settle");
+        console.log("[REGISTER] Waiting 500ms for cookies to settle");
 
-        // Add a small delay to ensure cookies are fully set before redirect
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Add delay to ensure cookies are fully set before redirect
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         console.log("[REGISTER] Performing redirect");
         // Use window.location.href for full page reload to ensure session is active
