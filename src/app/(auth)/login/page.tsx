@@ -106,6 +106,22 @@ function LoginForm() {
         // Wait for cookies to be fully set before redirecting
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // Check if cookies are set before redirect
+        const allCookies = document.cookie;
+        console.log("[LOGIN] All cookies before redirect:", allCookies);
+        console.log("[LOGIN] Has better-auth cookie:", allCookies.includes('better-auth'));
+
+        // Log each cookie individually
+        if (allCookies) {
+          const cookies = allCookies.split(';').map(c => c.trim());
+          console.log("[LOGIN] Cookie list:");
+          cookies.forEach(cookie => {
+            console.log("  -", cookie.substring(0, 50) + (cookie.length > 50 ? "..." : ""));
+          });
+        } else {
+          console.error("[LOGIN] NO COOKIES FOUND! This is the problem!");
+        }
+
         console.log("[LOGIN] Performing redirect now");
         window.location.href = redirectPath;
       }
