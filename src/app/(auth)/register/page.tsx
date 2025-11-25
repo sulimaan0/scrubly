@@ -24,26 +24,36 @@ function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[REGISTER] Form submitted");
+    console.log("[REGISTER] Callback URL:", callbackUrl);
     setLoading(true);
     setError("");
 
     try {
+      console.log("[REGISTER] Calling signUp.email");
       const result = await signUp.email({
         email: formData.email,
         password: formData.password,
         name: formData.name,
       });
 
+      console.log("[REGISTER] SignUp result:", { error: result.error, data: result.data });
+
       if (result.error) {
+        console.error("[REGISTER] SignUp failed:", result.error);
         setError(result.error.message || result.error.code || "Registration failed");
       } else {
+        console.log("[REGISTER] SignUp successful, now signing in");
         // Sign in immediately after signup to ensure session is established
         const signInResult = await signIn.email({
           email: formData.email,
           password: formData.password,
         });
 
+        console.log("[REGISTER] SignIn result:", { error: signInResult.error, data: signInResult.data });
+
         if (signInResult.error) {
+          console.error("[REGISTER] Auto sign-in failed:", signInResult.error);
           setError("Registration successful but auto-login failed. Please sign in.");
           setTimeout(() => {
             window.location.href = "/login";
@@ -51,7 +61,9 @@ function RegisterForm() {
           return;
         }
 
-        // Update user role
+        console.log("[REGISTER] Sign-in successful, setting user role");
+
+        // Verify session is established by making an authenticated API call
         const roleResponse = await fetch("/api/users/role", {
           method: "POST",
           headers: {
@@ -64,12 +76,24 @@ function RegisterForm() {
           }),
         });
 
+        console.log("[REGISTER] Role API response status:", roleResponse.status);
+
         if (!roleResponse.ok) {
-          setError("Failed to set user role");
+          if (roleResponse.status === 401) {
+            console.error("[REGISTER] Role API returned 401 - session not established");
+            setError("Session not established. Please sign in manually.");
+            setTimeout(() => {
+              window.location.href = "/login" + (callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
+            }, 2000);
+          } else {
+            console.error("[REGISTER] Role API failed with status:", roleResponse.status);
+            setError("Failed to set user role");
+          }
           return;
         }
 
         const userData = await roleResponse.json();
+        console.log("[REGISTER] User role set successfully:", userData);
 
         // Use callbackUrl if present, otherwise redirect based on role
         let redirectPath = callbackUrl || "/dashboard/customer";
@@ -84,11 +108,18 @@ function RegisterForm() {
           }
         }
 
+        console.log("[REGISTER] Redirecting to:", redirectPath);
+        console.log("[REGISTER] Waiting 100ms for cookies to settle");
+
+        // Add a small delay to ensure cookies are fully set before redirect
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        console.log("[REGISTER] Performing redirect");
         // Use window.location.href for full page reload to ensure session is active
         window.location.href = redirectPath;
       }
     } catch (err) {
-      console.error("Registration error:", err);
+      console.error("[REGISTER] Registration error:", err);
       setError("An error occurred");
     } finally {
       setLoading(false);

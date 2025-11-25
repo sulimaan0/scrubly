@@ -6,17 +6,28 @@ import { headers } from "next/headers";
 import { geocodePostcode } from "@/lib/geocoding";
 
 export async function POST(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  console.log("[CREATE-PAYMENT-INTENT] API called");
+
+  const requestHeaders = await headers();
+  console.log("[CREATE-PAYMENT-INTENT] Request headers cookies:", requestHeaders.get('cookie'));
+
+  const session = await auth.api.getSession({ headers: requestHeaders });
+
+  console.log("[CREATE-PAYMENT-INTENT] Session check result:", {
+    hasSession: !!session,
+    userId: session?.user?.id,
+    email: session?.user?.email
+  });
 
   if (!session) {
-    console.error("No session found in create-payment-intent");
+    console.error("[CREATE-PAYMENT-INTENT] No session found - returning 401");
     return NextResponse.json(
       { error: "Please sign in to continue with your booking" },
       { status: 401 }
     );
   }
 
-  console.log("Session found:", { userId: session.user.id, email: session.user.email });
+  console.log("[CREATE-PAYMENT-INTENT] Session found:", { userId: session.user.id, email: session.user.email });
 
   const body = await req.json();
   const {

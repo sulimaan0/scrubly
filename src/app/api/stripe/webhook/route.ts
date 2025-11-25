@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
+import { resend, EMAIL_FROM } from "@/lib/resend";
+import { BookingConfirmationEmail } from "@/emails/booking-confirmation";
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {

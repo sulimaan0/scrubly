@@ -18,22 +18,33 @@ function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[LOGIN] Form submitted");
+    console.log("[LOGIN] Callback URL:", callbackUrl);
     setLoading(true);
     setError("");
 
     try {
+      console.log("[LOGIN] Calling signIn.email");
       const result = await signIn.email({ email, password });
+      console.log("[LOGIN] SignIn result:", { error: result.error, data: result.data });
+
       if (result.error) {
+        console.error("[LOGIN] SignIn failed:", result.error);
         setError(result.error.message || "Login failed");
       } else {
+        console.log("[LOGIN] SignIn successful, fetching user role");
         const roleRes = await fetch("/api/users/role");
 
+        console.log("[LOGIN] Role API response status:", roleRes.status);
+
         if (!roleRes.ok) {
+          console.error("[LOGIN] Failed to fetch user role");
           setError("Failed to fetch user information");
           return;
         }
 
         const userData = await roleRes.json();
+        console.log("[LOGIN] User data:", userData);
 
         // Use callbackUrl if present, otherwise redirect based on role
         let redirectPath = callbackUrl || "/dashboard/customer";
@@ -48,10 +59,11 @@ function LoginForm() {
           }
         }
 
+        console.log("[LOGIN] Redirecting to:", redirectPath);
         window.location.href = redirectPath;
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("[LOGIN] Login error:", err);
       setError("An error occurred");
     } finally {
       setLoading(false);

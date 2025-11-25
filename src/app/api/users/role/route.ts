@@ -21,15 +21,25 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
+    console.error("[ROLE API] No session found - returning 401");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { role, postcode } = await req.json();
+  console.log("[ROLE API] Session found:", { userId: session.user.id, email: session.user.email });
 
+  const { role, postcode } = await req.json();
+  console.log("[ROLE API] Setting role:", role);
+
+  // Also mark email as verified since requireEmailVerification is false
   const user = await db.user.update({
     where: { id: session.user.id },
-    data: { role },
+    data: {
+      role,
+      emailVerified: true // Ensure email is marked verified since we don't require verification
+    },
   });
+
+  console.log("[ROLE API] User updated successfully:", { userId: user.id, role: user.role, emailVerified: user.emailVerified });
 
   if (role === "CLEANER") {
     let locationData: { postcode?: string; latitude?: number; longitude?: number } = {};

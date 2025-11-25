@@ -13,6 +13,7 @@ import { Navbar } from "@/components/navbar";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentForm } from "@/components/payment-form";
+import { useSession } from "@/lib/auth-client";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -29,6 +30,7 @@ const TIME_SLOTS = [
 function BookingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session, isPending: sessionLoading } = useSession();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,15 +38,18 @@ function BookingContent() {
 
   // Initialize form data - check for saved booking first, then URL params
   const [formData, setFormData] = useState(() => {
+    console.log("[BOOKING] Initializing form data");
     // Check if there's a pending booking from before auth
     if (typeof window !== 'undefined') {
       const pendingBooking = sessionStorage.getItem('pendingBooking');
       if (pendingBooking) {
-        sessionStorage.removeItem('pendingBooking');
+        console.log("[BOOKING] Found pending booking in sessionStorage:", pendingBooking);
         const saved = JSON.parse(pendingBooking);
         // Don't include price in formData
         const { price, ...bookingData } = saved;
         return bookingData;
+      } else {
+        console.log("[BOOKING] No pending booking found in sessionStorage");
       }
     }
 
@@ -80,14 +85,31 @@ function BookingContent() {
 
   // If user returned from registration with a saved booking, go to review step
   useEffect(() => {
+    console.log("[BOOKING] Mount effect - checking for pending booking");
+    console.log("[BOOKING] Session state:", { session, sessionLoading, hasUser: !!session?.user });
     if (typeof window !== 'undefined') {
       const pendingBooking = sessionStorage.getItem('pendingBooking');
-      if (pendingBooking && formData.date && formData.address) {
+      if (pendingBooking) {
+        console.log("[BOOKING] Found pending booking, navigating to step 3 (Review)");
+        // Remove it now that we've used it
+        sessionStorage.removeItem('pendingBooking');
         // User has complete booking data, go to review step
         setStep(3);
+      } else {
+        console.log("[BOOKING] No pending booking found on mount");
       }
     }
   }, []); // Only run on mount
+
+  // Log session changes
+  useEffect(() => {
+    console.log("[BOOKING] Session updated:", {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      email: session?.user?.email,
+      isPending: sessionLoading
+    });
+  }, [session, sessionLoading]);
 
   const validateStep = () => {
     setError("");
@@ -113,9 +135,19 @@ function BookingContent() {
   };
 
   const handleCreatePaymentIntent = async () => {
+    console.log("[BOOKING] handleCreatePaymentIntent called");
+    console.log("[BOOKING] Current session state:", {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      email: session?.user?.email,
+      isPending: sessionLoading
+    });
+
     setLoading(true);
     setError("");
+
     try {
+      console.log("[BOOKING] Making API call to create payment intent");
       const res = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,27 +155,40 @@ function BookingContent() {
         body: JSON.stringify({ ...formData, price }),
       });
 
+      console.log("[BOOKING] API response status:", res.status);
+
       if (res.status === 401) {
         // Unauthorized - redirect to register for new bookings
         const data = await res.json();
+        console.log("[BOOKING] 401 Unauthorized - redirecting to register");
+        console.log("[BOOKING] Saving booking to sessionStorage:", { ...formData, price });
         setError(data.error || "Please create an account or sign in to continue");
+
+        // Save booking details to sessionStorage so they can be restored after auth
+        sessionStorage.setItem('pendingBooking', JSON.stringify({ ...formData, price }));
+        console.log("[BOOKING] Booking saved to sessionStorage");
+
         setTimeout(() => {
-          // Save booking details to sessionStorage so they can be restored after auth
-          sessionStorage.setItem('pendingBooking', JSON.stringify({ ...formData, price }));
-          window.location.href = "/register?callbackUrl=" + encodeURIComponent(window.location.pathname);
-        }, 2000);
+          const redirectUrl = "/register?callbackUrl=" + encodeURIComponent(window.location.pathname);
+          console.log("[BOOKING] Redirecting to:", redirectUrl);
+          window.location.href = redirectUrl;
+        }, 1500);
         return;
       }
 
       const data = await res.json();
+      console.log("[BOOKING] Payment intent response:", data);
+
       if (data.clientSecret) {
+        console.log("[BOOKING] Client secret received, moving to payment step");
         setClientSecret(data.clientSecret);
         setStep(4);
       } else {
+        console.error("[BOOKING] No client secret in response:", data);
         setError(data.error || "Failed to create payment");
       }
     } catch (err) {
-      console.error("Payment intent error:", err);
+      console.error("[BOOKING] Payment intent error:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -151,7 +196,8 @@ function BookingContent() {
   };
 
   const handlePaymentSuccess = () => {
-    router.push("/dashboard/customer?success=true");
+    // Use window.location.href for full page reload to ensure session is active
+    window.location.href = "/dashboard/customer?success=true";
   };
 
   return (

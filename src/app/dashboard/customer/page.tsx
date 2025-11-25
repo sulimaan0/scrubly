@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Plus, MapPin, Calendar, Clock, X, Home, CreditCard } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus, MapPin, Calendar, Clock, X, Home, CreditCard, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { formatPrice, formatDate } from "@/lib/utils";
@@ -49,24 +49,64 @@ interface Booking {
   cleaner?: { name: string; email: string };
 }
 
-export default function CustomerDashboard() {
+function CustomerDashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const showSuccess = searchParams.get("success") === "true";
   const { data: session, isPending } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [cancellingBooking, setCancellingBooking] = useState(false);
+  const [successBannerVisible, setSuccessBannerVisible] = useState(showSuccess);
 
   useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login");
-      return;
-    }
+    console.log("[DASHBOARD] Component mounted");
+    console.log("[DASHBOARD] Session state:", {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      email: session?.user?.email,
+      isPending
+    });
+    console.log("[DASHBOARD] Show success:", showSuccess);
+  }, []);
+
+  useEffect(() => {
+    console.log("[DASHBOARD] Session updated:", {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      email: session?.user?.email,
+      isPending
+    });
+
+    // Middleware handles auth redirects, so just fetch data when session is ready
     if (session) {
+      console.log("[DASHBOARD] Fetching bookings");
       fetch("/api/bookings")
-        .then((res) => res.json())
-        .then(setBookings);
+        .then((res) => {
+          console.log("[DASHBOARD] Bookings API response status:", res.status);
+          return res.json();
+        })
+        .then(data => {
+          console.log("[DASHBOARD] Bookings received:", data?.length || 0);
+          setBookings(data);
+        })
+        .catch(err => {
+          console.error("[DASHBOARD] Error fetching bookings:", err);
+        });
     }
-  }, [session, isPending, router]);
+  }, [session, isPending]);
+
+  // Auto-hide success banner after 5 seconds
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setSuccessBannerVisible(false);
+        // Clean up URL
+        router.replace("/dashboard/customer", { scroll: false });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess, router]);
 
   const handleCancelBooking = async (bookingId: string) => {
     if (!confirm("Are you sure you want to cancel this booking?")) {
@@ -123,6 +163,25 @@ export default function CustomerDashboard() {
       <Navbar />
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
+        {/* Success Banner */}
+        {successBannerVisible && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-green-900">Booking confirmed!</h3>
+              <p className="text-sm text-green-700 mt-1">
+                Your payment was successful and your booking has been confirmed. We'll notify you when a cleaner accepts your job.
+              </p>
+            </div>
+            <button
+              onClick={() => setSuccessBannerVisible(false)}
+              className="text-green-600 hover:text-green-800"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
@@ -352,5 +411,17 @@ export default function CustomerDashboard() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function CustomerDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    }>
+      <CustomerDashboardContent />
+    </Suspense>
   );
 }

@@ -42,6 +42,7 @@
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.0.0",
     "react-leaflet": "^5.0.0",
+    "resend": "^6.5.2",
     "stripe": "^17.0.0",
     "tailwind-merge": "^2.5.0",
     "zod": "^3.23.0"
