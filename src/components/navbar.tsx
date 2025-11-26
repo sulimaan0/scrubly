@@ -20,11 +20,22 @@ export function Navbar() {
   const { data: session, isPending, error } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   // Handle client-side hydration
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Fetch user role
+  useEffect(() => {
+    if (session && !isPending) {
+      fetch("/api/users/role", { credentials: "include" })
+        .then(res => res.json())
+        .then(data => setUserRole(data.role))
+        .catch(err => console.error("Failed to fetch user role:", err));
+    }
+  }, [session, isPending]);
 
   // Refresh session on window focus to catch auth state changes
   useEffect(() => {
@@ -40,6 +51,14 @@ export function Navbar() {
   const handleSignOut = async () => {
     await signOut();
     window.location.href = "/";
+  };
+
+  // Get dashboard URL based on user role
+  const getDashboardUrl = () => {
+    if (userRole === "CLEANER") return "/dashboard/cleaner";
+    if (userRole === "ADMIN") return "/dashboard/admin";
+    if (userRole === "SUPER_ADMIN") return "/dashboard/super-admin";
+    return "/dashboard/customer";
   };
 
   // Don't show auth state until client has mounted to prevent hydration mismatch
@@ -104,7 +123,7 @@ export function Navbar() {
               Contact
             </Link>
             {isLoggedIn && (
-              <Link href="/dashboard/customer" className="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1.5">
+              <Link href={getDashboardUrl()} className="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1.5">
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
@@ -138,23 +157,35 @@ export function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/customer" className="cursor-pointer">
+                    <Link href={getDashboardUrl()} className="cursor-pointer">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/booking" className="cursor-pointer">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      New Booking
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/customer?tab=bookings" className="cursor-pointer">
-                      <Home className="h-4 w-4 mr-2" />
-                      My Bookings
-                    </Link>
-                  </DropdownMenuItem>
+                  {userRole === "CUSTOMER" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/booking" className="cursor-pointer">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          New Booking
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/customer?tab=bookings" className="cursor-pointer">
+                          <Home className="h-4 w-4 mr-2" />
+                          My Bookings
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {userRole === "CLEANER" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/cleaner" className="cursor-pointer">
+                        <Home className="h-4 w-4 mr-2" />
+                        My Jobs
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="cursor-pointer">
@@ -271,21 +302,23 @@ export function Navbar() {
                 <>
                   <div className="px-3 py-2 mt-2 text-xs font-semibold text-muted-foreground uppercase">Account</div>
                   <Link
-                    href="/dashboard/customer"
+                    href={getDashboardUrl()}
                     className="px-3 py-2.5 text-sm font-medium hover:bg-secondary rounded-lg transition-colors flex items-center gap-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <LayoutDashboard className="h-4 w-4" />
                     Dashboard
                   </Link>
-                  <Link
-                    href="/booking"
-                    className="px-3 py-2.5 text-sm hover:bg-secondary rounded-lg transition-colors flex items-center gap-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Calendar className="h-4 w-4" />
-                    New Booking
-                  </Link>
+                  {userRole === "CUSTOMER" && (
+                    <Link
+                      href="/booking"
+                      className="px-3 py-2.5 text-sm hover:bg-secondary rounded-lg transition-colors flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Calendar className="h-4 w-4" />
+                      New Booking
+                    </Link>
+                  )}
                   <Link
                     href="/settings"
                     className="px-3 py-2.5 text-sm hover:bg-secondary rounded-lg transition-colors flex items-center gap-2"
