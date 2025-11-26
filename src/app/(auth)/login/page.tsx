@@ -74,17 +74,8 @@ function LoginForm() {
         localStorage.setItem('lastLoginError', errorMsg);
       } else {
         // Check if email is verified
-        const userData = await fetch("/api/users/role", { credentials: "include" });
-        if (userData.ok) {
-          const user = await userData.json();
-          if (!user.emailVerified) {
-            console.log("[LOGIN] Email not verified, redirecting to verify page");
-            window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
-            return;
-          }
-        }
         console.log("[LOGIN] SignIn successful, fetching user role");
-        const roleRes = await fetch("/api/users/role");
+        const roleRes = await fetch("/api/users/role", { credentials: "include" });
 
         console.log("[LOGIN] Role API response status:", roleRes.status);
 
@@ -96,6 +87,13 @@ function LoginForm() {
 
         const userData = await roleRes.json();
         console.log("[LOGIN] User data:", userData);
+
+        // Check if email is verified
+        if (!userData.emailVerified) {
+          console.log("[LOGIN] Email not verified, redirecting to verify page");
+          window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+          return;
+        }
 
         // Use callbackUrl if present, otherwise redirect based on role
         let redirectPath = callbackUrl || "/dashboard/customer";
