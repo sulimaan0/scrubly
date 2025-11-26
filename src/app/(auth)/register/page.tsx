@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { signUp } from "@/lib/auth-client";
 
 function RegisterForm() {
   const searchParams = useSearchParams();
@@ -29,32 +30,47 @@ function RegisterForm() {
     setError("");
 
     try {
-      console.log("[REGISTER] Calling registration API");
-      const response = await fetch("/api/auth/register", {
+      // Step 1: Create user with Better Auth (proper password hashing)
+      console.log("[REGISTER] Calling signUp.email");
+      const signUpResult = await signUp.email({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+      });
+
+      if (signUpResult.error) {
+        console.error("[REGISTER] SignUp failed:", signUpResult.error);
+        setError(signUpResult.error.message || "Registration failed");
+        return;
+      }
+
+      console.log("[REGISTER] User created successfully");
+
+      // Step 2: Update role and create cleaner profile (no auth required)
+      await fetch("/api/users/set-role", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: formData.name,
           email: formData.email,
-          password: formData.password,
           role: formData.role,
           postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
         }),
       });
 
-      const result = await response.json();
-      console.log("[REGISTER] Registration result:", result);
+      // Step 3: Send verification code
+      await fetch("/api/auth/send-verification-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
 
-      if (!response.ok) {
-        console.error("[REGISTER] Registration failed:", result.error);
-        setError(result.error || "Registration failed");
-      } else {
-        console.log("[REGISTER] Registration successful, redirecting to verify email page");
-        // Redirect to verify email page with email parameter
-        window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
-      }
+      console.log("[REGISTER] Registration successful, redirecting to verify email page");
+      // Redirect to verify email page
+      window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
     } catch (err) {
       console.error("[REGISTER] Registration error:", err);
       setError("An error occurred");

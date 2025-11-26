@@ -74,8 +74,18 @@ function VerifyEmailForm() {
       const data = await res.json();
 
       if (res.ok) {
-        // Redirect to success page
-        window.location.href = "/verify-email/success";
+        // Redirect to dashboard based on role
+        let redirectPath = "/dashboard/customer";
+        if (data.user?.role === "CLEANER") {
+          redirectPath = "/dashboard/cleaner";
+        } else if (data.user?.role === "ADMIN") {
+          redirectPath = "/dashboard/admin";
+        } else if (data.user?.role === "SUPER_ADMIN") {
+          redirectPath = "/dashboard/super-admin";
+        }
+
+        console.log("[VERIFY] Email verified, redirecting to:", redirectPath);
+        window.location.href = redirectPath;
       } else {
         setMessage(data.error || "Invalid or expired code. Please try again.");
         setCode(["", "", "", "", "", ""]);
