@@ -4,6 +4,7 @@ import { resend, EMAIL_FROM } from "@/lib/resend";
 import { VerificationEmail } from "@/emails/verification-email";
 import { geocodePostcode } from "@/lib/geocoding";
 import bcrypt from "bcryptjs";
+import { createId } from "@paralleldrive/cuid2";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
     // Create user with role
     const user = await db.user.create({
       data: {
+        id: createId(),
         name,
         email,
         password: hashedPassword,
@@ -67,11 +69,17 @@ export async function POST(req: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+    // Delete any existing verification codes for this email
+    await db.verification.deleteMany({
+      where: { identifier: email },
+    });
+
     // Store verification code
-    await db.verificationCode.create({
+    await db.verification.create({
       data: {
-        email,
-        code: verificationCode,
+        id: crypto.randomUUID(),
+        identifier: email,
+        value: verificationCode,
         expiresAt,
       },
     });
@@ -80,11 +88,17 @@ export async function POST(req: NextRequest) {
 
     // Send verification email
     try {
+      const emailContent = VerificationEmail({
+        name: user.name,
+        code: verificationCode,
+      });
+
       await resend.emails.send({
         from: EMAIL_FROM,
         to: email,
-        subject: "Verify your Scrubly account",
-        react: VerificationEmail({ code: verificationCode }),
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
       });
       console.log("[REGISTER API] Verification email sent");
     } catch (emailError) {
