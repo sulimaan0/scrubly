@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { signUp, signIn } from "@/lib/auth-client";
 
 function RegisterForm() {
   const searchParams = useSearchParams();
@@ -30,53 +29,30 @@ function RegisterForm() {
     setError("");
 
     try {
-      console.log("[REGISTER] Calling signUp.email");
-      const result = await signUp.email({
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-      });
-
-      console.log("[REGISTER] SignUp result:", { error: result.error, data: result.data });
-
-      if (result.error) {
-        console.error("[REGISTER] SignUp failed:", result.error);
-        setError(result.error.message || result.error.code || "Registration failed");
-      } else {
-        console.log("[REGISTER] SignUp successful, sending verification code");
-
-        // Sign in to establish session for setting role
-        const signInResult = await signIn.email({
+      console.log("[REGISTER] Calling registration API");
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
           email: formData.email,
           password: formData.password,
-        });
+          role: formData.role,
+          postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
+        }),
+      });
 
-        if (!signInResult.error) {
-          // Set user role while we have a session
-          await fetch("/api/users/role", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-              role: formData.role,
-              postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
-            }),
-          });
-        }
+      const result = await response.json();
+      console.log("[REGISTER] Registration result:", result);
 
-        // Send verification code
-        await fetch("/api/auth/send-verification-code", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: formData.email }),
-        });
-
+      if (!response.ok) {
+        console.error("[REGISTER] Registration failed:", result.error);
+        setError(result.error || "Registration failed");
+      } else {
+        console.log("[REGISTER] Registration successful, redirecting to verify email page");
         // Redirect to verify email page with email parameter
-        console.log("[REGISTER] Redirecting to verify email page");
         window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
       }
     } catch (err) {
