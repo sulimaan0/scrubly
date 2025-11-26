@@ -88,9 +88,9 @@ function LoginForm() {
         const userData = await roleRes.json();
         console.log("[LOGIN] User data:", userData);
 
-        // Check if email is verified
-        if (!userData.emailVerified) {
-          console.log("[LOGIN] Email not verified, redirecting to verify page");
+        // Check if email is verified (only required for customers)
+        if (!userData.emailVerified && userData.role === "CUSTOMER") {
+          console.log("[LOGIN] Customer email not verified, redirecting to verify page");
           window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
           return;
         }
