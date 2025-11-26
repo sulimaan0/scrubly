@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = "d@d.com";
+  const email = "sulimaan.hussain2232@icloud.com";
 
   console.log(`Updating ${email} to SUPER_ADMIN...`);
 

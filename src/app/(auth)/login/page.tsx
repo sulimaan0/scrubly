@@ -73,6 +73,16 @@ function LoginForm() {
         setError(errorMsg);
         localStorage.setItem('lastLoginError', errorMsg);
       } else {
+        // Check if email is verified
+        const userData = await fetch("/api/users/role", { credentials: "include" });
+        if (userData.ok) {
+          const user = await userData.json();
+          if (!user.emailVerified) {
+            console.log("[LOGIN] Email not verified, redirecting to verify page");
+            window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+            return;
+          }
+        }
         console.log("[LOGIN] SignIn successful, fetching user role");
         const roleRes = await fetch("/api/users/role");
 
@@ -186,12 +196,20 @@ function LoginForm() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-foreground hover:underline">
-            Sign up
-          </Link>
-        </p>
+        <div className="space-y-3 mt-6 text-center text-sm text-muted-foreground">
+          <p>
+            Don't have an account?{" "}
+            <Link href="/register" className="text-foreground hover:underline">
+              Sign up
+            </Link>
+          </p>
+          <p>
+            Haven't verified your email?{" "}
+            <Link href="/verify-email" className="text-foreground hover:underline">
+              Resend verification
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

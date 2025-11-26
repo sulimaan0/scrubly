@@ -49,28 +49,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Set to true to require email verification before login
-    sendVerificationEmail: async ({ user, url }: { user: { name: string; email: string }; url: string }) => {
-      try {
-        const emailContent = VerificationEmail({
-          name: user.name,
-          verificationUrl: url,
-        });
-
-        await resend.emails.send({
-          from: EMAIL_FROM,
-          to: user.email,
-          subject: emailContent.subject,
-          html: emailContent.html,
-          text: emailContent.text,
-        });
-
-        console.log("[AUTH] Verification email sent to:", user.email);
-      } catch (error) {
-        console.error("[AUTH] Failed to send verification email:", error);
-        throw error;
-      }
-    },
+    requireEmailVerification: false, // Using custom code-based verification
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days

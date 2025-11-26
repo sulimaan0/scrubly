@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true },
+    select: {
+      role: true,
+      emailVerified: true,
+    },
   });
 
   return NextResponse.json(user);
@@ -51,13 +54,9 @@ export async function POST(req: NextRequest) {
   const { role, postcode } = await req.json();
   console.log("[ROLE API] Setting role:", role);
 
-  // Also mark email as verified since requireEmailVerification is false
   const user = await db.user.update({
     where: { id: session.user.id },
-    data: {
-      role,
-      emailVerified: true // Ensure email is marked verified since we don't require verification
-    },
+    data: { role },
   });
 
   console.log("[ROLE API] User updated successfully:", { userId: user.id, role: user.role, emailVerified: user.emailVerified });

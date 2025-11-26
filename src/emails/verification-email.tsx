@@ -1,9 +1,9 @@
 interface VerificationEmailProps {
   name: string;
-  verificationUrl: string;
+  code: string;
 }
 
-export const VerificationEmail = ({ name, verificationUrl }: VerificationEmailProps) => {
+export const VerificationEmail = ({ name, code }: VerificationEmailProps) => {
   return {
     subject: "Verify your Scrubly account",
     html: `
@@ -17,15 +17,15 @@ export const VerificationEmail = ({ name, verificationUrl }: VerificationEmailPr
   <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
     <h1 style="color: #0f172a; margin: 0 0 20px 0; font-size: 24px;">Welcome to Scrubly!</h1>
     <p style="margin: 0 0 20px 0; font-size: 16px;">Hi ${name},</p>
-    <p style="margin: 0 0 20px 0; font-size: 16px;">Thanks for signing up! Please verify your email address to get started.</p>
+    <p style="margin: 0 0 20px 0; font-size: 16px;">Thanks for signing up! Use the verification code below to verify your email address and get started.</p>
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${verificationUrl}"
-         style="background-color: #0f172a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
-        Verify Email Address
-      </a>
+      <div style="background-color: #ffffff; border: 2px solid #0f172a; border-radius: 8px; padding: 20px; display: inline-block;">
+        <div style="font-size: 14px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your Verification Code</div>
+        <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #0f172a; font-family: 'Courier New', monospace;">${code}</div>
+      </div>
     </div>
-    <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">Or copy and paste this link in your browser:</p>
-    <p style="margin: 0; font-size: 14px; color: #64748b; word-break: break-all;">${verificationUrl}</p>
+    <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b; text-align: center;">This code will expire in 15 minutes.</p>
+    <p style="margin: 0; font-size: 14px; color: #64748b; text-align: center;">If you didn't request this code, you can safely ignore this email.</p>
   </div>
   <div style="text-align: center; color: #94a3b8; font-size: 12px;">
     <p>© ${new Date().getFullYear()} Scrubly. All rights reserved.</p>
@@ -38,9 +38,13 @@ Welcome to Scrubly!
 
 Hi ${name},
 
-Thanks for signing up! Please verify your email address to get started.
+Thanks for signing up! Use the verification code below to verify your email address and get started.
 
-Verify your email: ${verificationUrl}
+Your verification code: ${code}
+
+This code will expire in 15 minutes.
+
+If you didn't request this code, you can safely ignore this email.
 
 © ${new Date().getFullYear()} Scrubly. All rights reserved.
     `.trim(),

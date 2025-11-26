@@ -174,33 +174,32 @@ function BookingContent() {
         return;
       }
 
-      // Sign in immediately after signup
+      // Sign in to establish session for setting role
       const signInResult = await signIn.email({
         email: authData.email,
         password: authData.password,
       });
 
-      if (signInResult.error) {
-        setAuthError("Registration successful but auto-login failed. Please sign in.");
-        setAuthMode("login");
-        setAuthLoading(false);
-        return;
+      if (!signInResult.error) {
+        // Set user role
+        await fetch("/api/users/role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ role: "CUSTOMER" }),
+        });
       }
 
-      // Set user role
-      await fetch("/api/users/role", {
+      // Send verification code
+      await fetch("/api/auth/send-verification-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ role: "CUSTOMER" }),
+        body: JSON.stringify({ email: authData.email }),
       });
 
-      // Wait for session to be established
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Automatically proceed to payment
+      // Redirect to verify email page with email parameter
       setAuthLoading(false);
-      handleCreatePaymentIntent();
+      window.location.href = `/verify-email?email=${encodeURIComponent(authData.email)}`;
     } catch (err) {
       setAuthError("An error occurred during registration");
       setAuthLoading(false);
@@ -222,6 +221,17 @@ function BookingContent() {
         setAuthError(result.error.message || "Login failed");
         setAuthLoading(false);
         return;
+      }
+
+      // Check if email is verified
+      const userData = await fetch("/api/users/role", { credentials: "include" });
+      if (userData.ok) {
+        const user = await userData.json();
+        if (!user.emailVerified) {
+          // Redirect to verify page
+          window.location.href = `/verify-email?email=${encodeURIComponent(authData.email)}`;
+          return;
+        }
       }
 
       // Wait for session to be established
@@ -660,20 +670,20 @@ function BookingContent() {
 
               {/* Inline Authentication */}
               {!session && !sessionLoading && (
-                <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-6 sm:p-8 space-y-6">
-                  <div className="text-center space-y-2">
-                    <h3 className="text-xl font-semibold">
-                      {authMode === "register" ? "Create your account" : "Sign in to continue"}
+                <div className="space-y-6 pt-6 border-t">
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-semibold">
+                      {authMode === "register" ? "Create your account" : "Welcome back"}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground">
                       {authMode === "register"
-                        ? "Quick and easy - takes less than a minute"
-                        : "Welcome back! Sign in to complete your booking"}
+                        ? "Get started with Scrubly"
+                        : "Sign in to your account"}
                     </p>
                   </div>
 
                   {authError && (
-                    <div className="p-4 text-sm text-red-600 bg-red-50 rounded-xl">
+                    <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl">
                       {authError}
                     </div>
                   )}
@@ -725,41 +735,41 @@ function BookingContent() {
                     <Button type="submit" className="w-full h-14" disabled={authLoading}>
                       {authLoading
                         ? (authMode === "register" ? "Creating account..." : "Signing in...")
-                        : (authMode === "register" ? "Create account & continue" : "Sign in & continue")}
+                        : (authMode === "register" ? "Create account" : "Sign in")}
                     </Button>
                   </form>
 
-                  <div className="text-center text-sm">
+                  <p className="text-center text-sm text-muted-foreground">
                     {authMode === "register" ? (
-                      <p className="text-muted-foreground">
+                      <>
                         Already have an account?{" "}
                         <button
                           onClick={() => {
                             setAuthMode("login");
                             setAuthError("");
                           }}
-                          className="text-foreground hover:underline font-medium"
+                          className="text-foreground hover:underline"
                           type="button"
                         >
                           Sign in
                         </button>
-                      </p>
+                      </>
                     ) : (
-                      <p className="text-muted-foreground">
+                      <>
                         Don't have an account?{" "}
                         <button
                           onClick={() => {
                             setAuthMode("register");
                             setAuthError("");
                           }}
-                          className="text-foreground hover:underline font-medium"
+                          className="text-foreground hover:underline"
                           type="button"
                         >
-                          Create account
+                          Sign up
                         </button>
-                      </p>
+                      </>
                     )}
-                  </div>
+                  </p>
                 </div>
               )}
 

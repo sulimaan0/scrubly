@@ -43,80 +43,41 @@ function RegisterForm() {
         console.error("[REGISTER] SignUp failed:", result.error);
         setError(result.error.message || result.error.code || "Registration failed");
       } else {
-        console.log("[REGISTER] SignUp successful, now signing in");
-        // Sign in immediately after signup to ensure session is established
+        console.log("[REGISTER] SignUp successful, sending verification code");
+
+        // Sign in to establish session for setting role
         const signInResult = await signIn.email({
           email: formData.email,
           password: formData.password,
         });
 
-        console.log("[REGISTER] SignIn result:", { error: signInResult.error, data: signInResult.data });
-
-        if (signInResult.error) {
-          console.error("[REGISTER] Auto sign-in failed:", signInResult.error);
-          setError("Registration successful but auto-login failed. Please sign in.");
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 2000);
-          return;
+        if (!signInResult.error) {
+          // Set user role while we have a session
+          await fetch("/api/users/role", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              role: formData.role,
+              postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
+            }),
+          });
         }
 
-        console.log("[REGISTER] Sign-in successful, setting user role");
-
-        // Verify session is established by making an authenticated API call
-        const roleResponse = await fetch("/api/users/role", {
+        // Send verification code
+        await fetch("/api/auth/send-verification-code", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
-          body: JSON.stringify({
-            role: formData.role,
-            postcode: formData.role === "CLEANER" ? formData.postcode : undefined,
-          }),
+          body: JSON.stringify({ email: formData.email }),
         });
 
-        console.log("[REGISTER] Role API response status:", roleResponse.status);
-
-        if (!roleResponse.ok) {
-          if (roleResponse.status === 401) {
-            console.error("[REGISTER] Role API returned 401 - session not established");
-            setError("Session not established. Please sign in manually.");
-            setTimeout(() => {
-              window.location.href = "/login" + (callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : "");
-            }, 2000);
-          } else {
-            console.error("[REGISTER] Role API failed with status:", roleResponse.status);
-            setError("Failed to set user role");
-          }
-          return;
-        }
-
-        const userData = await roleResponse.json();
-        console.log("[REGISTER] User role set successfully:", userData);
-
-        // Use callbackUrl if present, otherwise redirect based on role
-        let redirectPath = callbackUrl || "/dashboard/customer";
-
-        if (!callbackUrl) {
-          if (userData.role === "CLEANER") {
-            redirectPath = "/dashboard/cleaner";
-          } else if (userData.role === "ADMIN") {
-            redirectPath = "/dashboard/admin";
-          } else if (userData.role === "SUPER_ADMIN") {
-            redirectPath = "/dashboard/super-admin";
-          }
-        }
-
-        console.log("[REGISTER] Redirecting to:", redirectPath);
-        console.log("[REGISTER] Waiting 500ms for cookies to settle");
-
-        // Add delay to ensure cookies are fully set before redirect
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        console.log("[REGISTER] Performing redirect");
-        // Use window.location.href for full page reload to ensure session is active
-        window.location.href = redirectPath;
+        // Redirect to verify email page with email parameter
+        console.log("[REGISTER] Redirecting to verify email page");
+        window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
       }
     } catch (err) {
       console.error("[REGISTER] Registration error:", err);
