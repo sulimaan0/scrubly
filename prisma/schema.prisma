@@ -16,6 +16,12 @@ model User {
   password      String?   // Password hash (optional for OAuth users)
   role          Role      @default(CUSTOMER)
   fcmToken      String?   // Firebase Cloud Messaging token for push notifications
+
+  // Saved address details for quick booking
+  savedAddress  String?
+  savedCity     String?
+  savedPostcode String?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

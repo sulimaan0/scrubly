@@ -45,6 +45,7 @@ function BookingContent() {
   });
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [saveDetails, setSaveDetails] = useState(false);
 
   // Initialize form data
   const [formData, setFormData] = useState({
@@ -63,6 +64,35 @@ function BookingContent() {
     timeSlot: "",
     instructions: "",
   });
+
+  // Fetch and pre-fill user's saved details
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (session && !sessionLoading) {
+        try {
+          const res = await fetch("/api/users/profile", {
+            credentials: "include",
+          });
+          if (res.ok) {
+            const profile = await res.json();
+            // Pre-fill saved address details if available and form is empty
+            if (profile.savedAddress && !formData.address) {
+              setFormData(prev => ({
+                ...prev,
+                address: profile.savedAddress || "",
+                city: profile.savedCity || "",
+                postcode: profile.savedPostcode || prev.postcode,
+              }));
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch user profile:", err);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [session, sessionLoading]);
 
   const price = calculatePrice(
     formData.serviceType,
@@ -136,6 +166,27 @@ function BookingContent() {
 
       if (data.clientSecret) {
         console.log("[BOOKING] Client secret received, moving to payment step");
+
+        // Save user details if checkbox is checked
+        if (saveDetails) {
+          try {
+            await fetch("/api/users/profile", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                savedAddress: formData.address,
+                savedCity: formData.city,
+                savedPostcode: formData.postcode,
+              }),
+            });
+            console.log("[BOOKING] User details saved for future bookings");
+          } catch (err) {
+            console.error("[BOOKING] Failed to save user details:", err);
+            // Don't block the flow if saving fails
+          }
+        }
+
         setClientSecret(data.clientSecret);
         setStep(4);
       } else {
@@ -190,16 +241,20 @@ function BookingContent() {
         });
       }
 
-      // Send verification code
-      await fetch("/api/auth/send-verification-code", {
+      // Send verification code in background (don't wait for it)
+      fetch("/api/auth/send-verification-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: authData.email }),
-      });
+      }).catch(err => console.error("Failed to send verification email:", err));
 
-      // Redirect to verify email page with email parameter
+      // Wait for session to be established
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Continue with booking flow instead of redirecting to verification
       setAuthLoading(false);
-      window.location.href = `/verify-email?email=${encodeURIComponent(authData.email)}`;
+      console.log("[BOOKING] User registered, proceeding with payment intent creation");
+      handleCreatePaymentIntent();
     } catch (err) {
       setAuthError("An error occurred during registration");
       setAuthLoading(false);
@@ -569,6 +624,22 @@ function BookingContent() {
                     />
                   </div>
                 </div>
+
+                {session && (
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox
+                      id="saveDetails"
+                      checked={saveDetails}
+                      onCheckedChange={(checked) => setSaveDetails(checked as boolean)}
+                    />
+                    <label
+                      htmlFor="saveDetails"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Save these details for future bookings
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
           )}
