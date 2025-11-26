@@ -164,7 +164,7 @@ function LoginForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12"
+              className="h-14"
               required
             />
           </div>
@@ -176,12 +176,12 @@ function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-12"
+              className="h-14"
               required
             />
           </div>
 
-          <Button type="submit" className="w-full h-12" disabled={loading}>
+          <Button type="submit" className="w-full h-14" disabled={loading}>
             {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>

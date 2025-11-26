@@ -4,14 +4,24 @@ import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { geocodePostcode } from "@/lib/geocoding";
+import { getMobileSession } from "@/lib/mobile-auth";
 
 export async function POST(req: NextRequest) {
   console.log("[CREATE-PAYMENT-INTENT] API called");
 
-  const requestHeaders = await headers();
-  console.log("[CREATE-PAYMENT-INTENT] Request headers cookies:", requestHeaders.get('cookie'));
+  // Try mobile token first
+  let session = await getMobileSession(req);
 
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  // Fall back to cookie-based session
+  if (!session) {
+    const requestHeaders = await headers();
+    console.log("[CREATE-PAYMENT-INTENT] Request headers cookies:", requestHeaders.get('cookie'));
+
+    const webSession = await auth.api.getSession({ headers: requestHeaders });
+    if (webSession) {
+      session = { user: webSession.user } as any;
+    }
+  }
 
   console.log("[CREATE-PAYMENT-INTENT] Session check result:", {
     hasSession: !!session,

@@ -13,7 +13,7 @@ import { Navbar } from "@/components/navbar";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentForm } from "@/components/payment-form";
-import { useSession } from "@/lib/auth-client";
+import { useSession, signUp, signIn } from "@/lib/auth-client";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -36,39 +36,32 @@ function BookingContent() {
   const [error, setError] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 
-  // Initialize form data - check for saved booking first, then URL params
-  const [formData, setFormData] = useState(() => {
-    console.log("[BOOKING] Initializing form data");
-    // Check if there's a pending booking from before auth
-    if (typeof window !== 'undefined') {
-      const pendingBooking = sessionStorage.getItem('pendingBooking');
-      if (pendingBooking) {
-        console.log("[BOOKING] Found pending booking in sessionStorage:", pendingBooking);
-        const saved = JSON.parse(pendingBooking);
-        // Don't include price in formData
-        const { price, ...bookingData } = saved;
-        return bookingData;
-      } else {
-        console.log("[BOOKING] No pending booking found in sessionStorage");
-      }
-    }
+  // Inline auth state
+  const [authMode, setAuthMode] = useState<"login" | "register">("register");
+  const [authData, setAuthData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
 
-    return {
-      postcode: searchParams.get("postcode") || "",
-      serviceType: "STANDARD" as "STANDARD" | "DEEP" | "MOVE_IN_OUT" | "OFFICE",
-      propertyType: "APARTMENT" as "APARTMENT" | "HOUSE" | "STUDIO" | "OFFICE",
-      bedrooms: 1,
-      bathrooms: 1,
-      desks: 0,
-      meetingRooms: 0,
-      restrooms: 1,
-      extras: [] as string[],
-      address: "",
-      city: "",
-      date: "",
-      timeSlot: "",
-      instructions: "",
-    };
+  // Initialize form data
+  const [formData, setFormData] = useState({
+    postcode: searchParams.get("postcode") || "",
+    serviceType: "STANDARD" as "STANDARD" | "DEEP" | "MOVE_IN_OUT" | "OFFICE",
+    propertyType: "APARTMENT" as "APARTMENT" | "HOUSE" | "STUDIO" | "OFFICE",
+    bedrooms: 1,
+    bathrooms: 1,
+    desks: 0,
+    meetingRooms: 0,
+    restrooms: 1,
+    extras: [] as string[],
+    address: "",
+    city: "",
+    date: "",
+    timeSlot: "",
+    instructions: "",
   });
 
   const price = calculatePrice(
@@ -83,33 +76,6 @@ function BookingContent() {
     } : undefined
   );
 
-  // If user returned from registration with a saved booking, go to review step
-  useEffect(() => {
-    console.log("[BOOKING] Mount effect - checking for pending booking");
-    console.log("[BOOKING] Session state:", { session, sessionLoading, hasUser: !!session?.user });
-    if (typeof window !== 'undefined') {
-      const pendingBooking = sessionStorage.getItem('pendingBooking');
-      if (pendingBooking) {
-        console.log("[BOOKING] Found pending booking, navigating to step 3 (Review)");
-        // Remove it now that we've used it
-        sessionStorage.removeItem('pendingBooking');
-        // User has complete booking data, go to review step
-        setStep(3);
-      } else {
-        console.log("[BOOKING] No pending booking found on mount");
-      }
-    }
-  }, []); // Only run on mount
-
-  // Log session changes
-  useEffect(() => {
-    console.log("[BOOKING] Session updated:", {
-      hasSession: !!session,
-      userId: session?.user?.id,
-      email: session?.user?.email,
-      isPending: sessionLoading
-    });
-  }, [session, sessionLoading]);
 
   const validateStep = () => {
     setError("");
@@ -158,21 +124,10 @@ function BookingContent() {
       console.log("[BOOKING] API response status:", res.status);
 
       if (res.status === 401) {
-        // Unauthorized - redirect to register for new bookings
+        // This shouldn't happen with inline auth, but handle it gracefully
         const data = await res.json();
-        console.log("[BOOKING] 401 Unauthorized - redirecting to register");
-        console.log("[BOOKING] Saving booking to sessionStorage:", { ...formData, price });
-        setError(data.error || "Please create an account or sign in to continue");
-
-        // Save booking details to sessionStorage so they can be restored after auth
-        sessionStorage.setItem('pendingBooking', JSON.stringify({ ...formData, price }));
-        console.log("[BOOKING] Booking saved to sessionStorage");
-
-        setTimeout(() => {
-          const redirectUrl = "/register?callbackUrl=" + encodeURIComponent(window.location.pathname);
-          console.log("[BOOKING] Redirecting to:", redirectUrl);
-          window.location.href = redirectUrl;
-        }, 1500);
+        console.log("[BOOKING] 401 Unauthorized");
+        setError(data.error || "Please sign in to continue");
         return;
       }
 
@@ -200,43 +155,127 @@ function BookingContent() {
     window.location.href = "/dashboard/customer?success=true";
   };
 
+  // Inline authentication handlers
+  const handleInlineSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      const result = await signUp.email({
+        email: authData.email,
+        password: authData.password,
+        name: authData.name,
+      });
+
+      if (result.error) {
+        setAuthError(result.error.message || "Registration failed");
+        setAuthLoading(false);
+        return;
+      }
+
+      // Sign in immediately after signup
+      const signInResult = await signIn.email({
+        email: authData.email,
+        password: authData.password,
+      });
+
+      if (signInResult.error) {
+        setAuthError("Registration successful but auto-login failed. Please sign in.");
+        setAuthMode("login");
+        setAuthLoading(false);
+        return;
+      }
+
+      // Set user role
+      await fetch("/api/users/role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ role: "CUSTOMER" }),
+      });
+
+      // Wait for session to be established
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Automatically proceed to payment
+      setAuthLoading(false);
+      handleCreatePaymentIntent();
+    } catch (err) {
+      setAuthError("An error occurred during registration");
+      setAuthLoading(false);
+    }
+  };
+
+  const handleInlineSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      const result = await signIn.email({
+        email: authData.email,
+        password: authData.password,
+      });
+
+      if (result.error) {
+        setAuthError(result.error.message || "Login failed");
+        setAuthLoading(false);
+        return;
+      }
+
+      // Wait for session to be established
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Automatically proceed to payment
+      setAuthLoading(false);
+      handleCreatePaymentIntent();
+    } catch (err) {
+      setAuthError("An error occurred during login");
+      setAuthLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-12 max-w-6xl">
+      {/* Fixed Progress Bar */}
+      <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b border-border/40 shadow-sm">
+        <div className="container mx-auto px-4 py-4 max-w-2xl">
+          <div className="flex items-center justify-between mb-2">
+            {STEPS.map((s, i) => (
+              <div key={s} className="flex items-center">
+                <div className={cn(
+                  "flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-colors",
+                  i < step ? "bg-foreground text-background" :
+                  i === step ? "bg-foreground text-background" :
+                  "bg-secondary text-muted-foreground"
+                )}>
+                  {i < step ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : i + 1}
+                </div>
+                {i < STEPS.length - 1 && (
+                  <div className={cn(
+                    "w-8 sm:w-16 md:w-24 h-0.5 mx-1 sm:mx-2",
+                    i < step ? "bg-foreground" : "bg-secondary"
+                  )} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground px-1">
+            {STEPS.map((s) => (
+              <span key={s} className="hidden sm:inline">{s}</span>
+            ))}
+            <span className="sm:hidden">{STEPS[step]}</span>
+          </div>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="flex flex-row gap-8">
           {/* Main content */}
           <div className="flex-1 max-w-2xl">
-            {/* Progress */}
-            <div className="mb-12">
-              <div className="flex items-center justify-between mb-2">
-                {STEPS.map((s, i) => (
-                  <div key={s} className="flex items-center">
-                    <div className={cn(
-                      "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors",
-                      i < step ? "bg-foreground text-background" :
-                      i === step ? "bg-foreground text-background" :
-                      "bg-secondary text-muted-foreground"
-                    )}>
-                      {i < step ? <Check className="h-4 w-4" /> : i + 1}
-                    </div>
-                    {i < STEPS.length - 1 && (
-                      <div className={cn(
-                        "w-16 sm:w-24 h-0.5 mx-2",
-                        i < step ? "bg-foreground" : "bg-secondary"
-                      )} />
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                {STEPS.map((s) => (
-                  <span key={s}>{s}</span>
-                ))}
-              </div>
-            </div>
-
             {/* Form Content */}
             <div className="space-y-8">
               {error && (
@@ -415,7 +454,7 @@ function BookingContent() {
                 <div>
                   <Label className="text-sm mb-2 block">Property type</Label>
                   <Select value={formData.propertyType} onValueChange={(v) => setFormData({ ...formData, propertyType: v as typeof formData.propertyType })}>
-                    <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="STUDIO">Studio</SelectItem>
                       <SelectItem value="APARTMENT">Apartment</SelectItem>
@@ -427,11 +466,11 @@ function BookingContent() {
 
                 {formData.serviceType === "OFFICE" ? (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm mb-2 block">Number of Desks</Label>
                         <Select value={String(formData.desks)} onValueChange={(v) => setFormData({ ...formData, desks: parseInt(v) })}>
-                          <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
                               <SelectItem key={n} value={String(n)}>{n}</SelectItem>
@@ -442,7 +481,7 @@ function BookingContent() {
                       <div>
                         <Label className="text-sm mb-2 block">Meeting Rooms</Label>
                         <Select value={String(formData.meetingRooms)} onValueChange={(v) => setFormData({ ...formData, meetingRooms: parseInt(v) })}>
-                          <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {[0, 1, 2, 3, 4, 5].map((n) => (
                               <SelectItem key={n} value={String(n)}>{n}</SelectItem>
@@ -454,7 +493,7 @@ function BookingContent() {
                     <div>
                       <Label className="text-sm mb-2 block">Restrooms</Label>
                       <Select value={String(formData.restrooms)} onValueChange={(v) => setFormData({ ...formData, restrooms: parseInt(v) })}>
-                        <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {[1, 2, 3, 4, 5].map((n) => (
                             <SelectItem key={n} value={String(n)}>{n}</SelectItem>
@@ -464,11 +503,11 @@ function BookingContent() {
                     </div>
                   </>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm mb-2 block">Bedrooms</Label>
                       <Select value={String(formData.bedrooms)} onValueChange={(v) => setFormData({ ...formData, bedrooms: parseInt(v) })}>
-                        <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {[0, 1, 2, 3, 4, 5].map((n) => (
                             <SelectItem key={n} value={String(n)}>{n}</SelectItem>
@@ -479,7 +518,7 @@ function BookingContent() {
                     <div>
                       <Label className="text-sm mb-2 block">Bathrooms</Label>
                       <Select value={String(formData.bathrooms)} onValueChange={(v) => setFormData({ ...formData, bathrooms: parseInt(v) })}>
-                        <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {[1, 2, 3, 4].map((n) => (
                             <SelectItem key={n} value={String(n)}>{n}</SelectItem>
@@ -495,18 +534,18 @@ function BookingContent() {
                   <Input
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="h-12"
+                    className="h-14"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm mb-2 block">City</Label>
                     <Input
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="h-12"
+                      className="h-14"
                       required
                     />
                   </div>
@@ -515,7 +554,7 @@ function BookingContent() {
                     <Input
                       value={formData.postcode}
                       onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                      className="h-12"
+                      className="h-14"
                       required
                     />
                   </div>
@@ -539,21 +578,21 @@ function BookingContent() {
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     min={new Date().toISOString().split("T")[0]}
-                    className="h-12"
+                    className="h-14"
                     required
                   />
                 </div>
 
                 <div>
                   <Label className="text-sm mb-3 block">Time slot</Label>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-3">
                     {TIME_SLOTS.map((slot) => (
                       <button
                         key={slot.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, timeSlot: slot.value })}
                         className={cn(
-                          "p-4 rounded-xl border-2 text-left text-sm font-medium transition-all",
+                          "p-4 min-h-[56px] rounded-xl border-2 text-left text-sm font-medium transition-all",
                           formData.timeSlot === slot.value
                             ? "border-foreground bg-secondary/50"
                             : "border-border hover:border-foreground/30"
@@ -619,6 +658,111 @@ function BookingContent() {
                 </div>
               </div>
 
+              {/* Inline Authentication */}
+              {!session && !sessionLoading && (
+                <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-6 sm:p-8 space-y-6">
+                  <div className="text-center space-y-2">
+                    <h3 className="text-xl font-semibold">
+                      {authMode === "register" ? "Create your account" : "Sign in to continue"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {authMode === "register"
+                        ? "Quick and easy - takes less than a minute"
+                        : "Welcome back! Sign in to complete your booking"}
+                    </p>
+                  </div>
+
+                  {authError && (
+                    <div className="p-4 text-sm text-red-600 bg-red-50 rounded-xl">
+                      {authError}
+                    </div>
+                  )}
+
+                  <form onSubmit={authMode === "register" ? handleInlineSignUp : handleInlineSignIn} className="space-y-4">
+                    {authMode === "register" && (
+                      <div>
+                        <Label className="text-sm mb-2 block">Full name</Label>
+                        <Input
+                          value={authData.name}
+                          onChange={(e) => setAuthData({ ...authData, name: e.target.value })}
+                          className="h-14"
+                          required
+                          disabled={authLoading}
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="text-sm mb-2 block">Email</Label>
+                      <Input
+                        type="email"
+                        value={authData.email}
+                        onChange={(e) => setAuthData({ ...authData, email: e.target.value })}
+                        className="h-14"
+                        required
+                        disabled={authLoading}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm mb-2 block">Password</Label>
+                      <Input
+                        type="password"
+                        value={authData.password}
+                        onChange={(e) => setAuthData({ ...authData, password: e.target.value })}
+                        className="h-14"
+                        required
+                        minLength={8}
+                        disabled={authLoading}
+                      />
+                      {authMode === "register" && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Minimum 8 characters
+                        </p>
+                      )}
+                    </div>
+
+                    <Button type="submit" className="w-full h-14" disabled={authLoading}>
+                      {authLoading
+                        ? (authMode === "register" ? "Creating account..." : "Signing in...")
+                        : (authMode === "register" ? "Create account & continue" : "Sign in & continue")}
+                    </Button>
+                  </form>
+
+                  <div className="text-center text-sm">
+                    {authMode === "register" ? (
+                      <p className="text-muted-foreground">
+                        Already have an account?{" "}
+                        <button
+                          onClick={() => {
+                            setAuthMode("login");
+                            setAuthError("");
+                          }}
+                          className="text-foreground hover:underline font-medium"
+                          type="button"
+                        >
+                          Sign in
+                        </button>
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        Don't have an account?{" "}
+                        <button
+                          onClick={() => {
+                            setAuthMode("register");
+                            setAuthError("");
+                          }}
+                          className="text-foreground hover:underline font-medium"
+                          type="button"
+                        >
+                          Create account
+                        </button>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -648,26 +792,28 @@ function BookingContent() {
 
               {/* Navigation */}
               {step < 4 && (
-                <div className="flex justify-between pt-6 border-t">
+                <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-6 border-t">
                   <Button
                     variant="ghost"
                     onClick={() => setStep(step - 1)}
                     disabled={step === 0}
-                    className="h-12"
+                    className="h-14 w-full sm:w-auto"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
                   {step < 3 ? (
-                    <Button onClick={handleNext} className="h-12 px-6">
+                    <Button onClick={handleNext} className="h-14 px-6 w-full sm:w-auto">
                       Continue
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   ) : (
-                    <Button onClick={handleCreatePaymentIntent} disabled={loading} className="h-12 px-8">
-                      {loading ? "Processing..." : "Continue to Payment"}
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
+                    session && (
+                      <Button onClick={handleCreatePaymentIntent} disabled={loading} className="h-14 px-8 w-full sm:w-auto">
+                        {loading ? "Processing..." : "Continue to Payment"}
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    )
                   )}
                 </div>
               )}

@@ -150,7 +150,7 @@ function RegisterForm() {
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="h-12"
+              className="h-14"
               required
             />
           </div>
@@ -162,7 +162,7 @@ function RegisterForm() {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="h-12"
+              className="h-14"
               required
             />
           </div>
@@ -174,7 +174,7 @@ function RegisterForm() {
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="h-12"
+              className="h-14"
               required
               minLength={8}
             />
@@ -183,7 +183,7 @@ function RegisterForm() {
           <div>
             <Label className="text-sm mb-2 block">I want to</Label>
             <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v })}>
-              <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-14"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="CUSTOMER">Book cleaning services</SelectItem>
                 <SelectItem value="CLEANER">Work as a cleaner</SelectItem>
@@ -199,7 +199,7 @@ function RegisterForm() {
                 value={formData.postcode}
                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value.toUpperCase() })}
                 placeholder="e.g. SW1A 1AA"
-                className="h-12"
+                className="h-14"
                 required
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -208,7 +208,7 @@ function RegisterForm() {
             </div>
           )}
 
-          <Button type="submit" className="w-full h-12" disabled={loading}>
+          <Button type="submit" className="w-full h-14" disabled={loading}>
             {loading ? "Creating account..." : "Create account"}
           </Button>
         </form>

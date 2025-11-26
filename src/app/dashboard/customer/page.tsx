@@ -183,12 +183,12 @@ function CustomerDashboardContent() {
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-10">
           <div>
             <h1 className="text-2xl font-semibold">Your bookings</h1>
             <p className="text-muted-foreground mt-1">Welcome back, {session?.user?.name}</p>
           </div>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto h-12 sm:h-10">
             <Link href="/booking">
               <Plus className="h-4 w-4 mr-2" />
               New booking
@@ -197,16 +197,16 @@ function CustomerDashboardContent() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
-          <div className="p-6 rounded-2xl bg-secondary/50">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 sm:mb-10">
+          <div className="p-5 sm:p-6 rounded-2xl bg-secondary/50">
             <div className="text-3xl font-semibold">{bookings.length}</div>
             <div className="text-sm text-muted-foreground mt-1">Total bookings</div>
           </div>
-          <div className="p-6 rounded-2xl bg-secondary/50">
+          <div className="p-5 sm:p-6 rounded-2xl bg-secondary/50">
             <div className="text-3xl font-semibold">{upcomingBookings.length}</div>
             <div className="text-sm text-muted-foreground mt-1">Upcoming</div>
           </div>
-          <div className="p-6 rounded-2xl bg-secondary/50">
+          <div className="p-5 sm:p-6 rounded-2xl bg-secondary/50">
             <div className="text-3xl font-semibold">{pastBookings.length}</div>
             <div className="text-sm text-muted-foreground mt-1">Completed</div>
           </div>
@@ -227,12 +227,12 @@ function CustomerDashboardContent() {
               {upcomingBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="p-6 rounded-2xl border bg-white hover:shadow-md transition-shadow cursor-pointer"
+                  className="p-5 sm:p-6 rounded-2xl border bg-white hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => setSelectedBooking(booking)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div className="space-y-3 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <h3 className="text-sm font-semibold">{formatServiceType(booking.serviceType)}</h3>
                         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusColor(booking.status)}`}>
                           {formatStatus(booking.status)}
@@ -243,7 +243,7 @@ function CustomerDashboardContent() {
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap gap-3 sm:gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                           <MapPin className="h-3.5 w-3.5" />
                           {booking.city} {booking.postcode}
@@ -264,7 +264,7 @@ function CustomerDashboardContent() {
                         </div>
                       )}
                     </div>
-                    <div className="text-lg font-semibold">{formatPrice(booking.price)}</div>
+                    <div className="text-lg font-semibold sm:text-right">{formatPrice(booking.price)}</div>
                   </div>
                 </div>
               ))}
@@ -303,17 +303,17 @@ function CustomerDashboardContent() {
         {selectedBooking && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedBooking(null)}>
             <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="p-6 border-b flex items-center justify-between">
+              <div className="p-5 sm:p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10">
                 <h2 className="text-lg font-semibold">Booking Details</h2>
-                <button onClick={() => setSelectedBooking(null)} className="text-muted-foreground hover:text-foreground">
+                <button onClick={() => setSelectedBooking(null)} className="text-muted-foreground hover:text-foreground p-2 -mr-2">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-5 sm:p-6 space-y-6">
                 {/* Service Info */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold">{formatServiceType(selectedBooking.serviceType)}</h3>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusColor(selectedBooking.status)}`}>
                       {formatStatus(selectedBooking.status)}
@@ -394,10 +394,10 @@ function CustomerDashboardContent() {
                 {selectedBooking.status !== "CANCELLED" &&
                  selectedBooking.status !== "COMPLETED" &&
                  selectedBooking.status !== "IN_PROGRESS" && (
-                  <div className="px-6 pb-6">
+                  <div className="px-5 sm:px-6 pb-5 sm:pb-6">
                     <Button
                       variant="destructive"
-                      className="w-full"
+                      className="w-full h-12 sm:h-10"
                       onClick={() => handleCancelBooking(selectedBooking.id)}
                       disabled={cancellingBooking}
                     >

@@ -4,9 +4,20 @@ import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { isWithinRadius } from "@/lib/geocoding";
+import { getMobileSession } from "@/lib/mobile-auth";
 
 export async function GET(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Try mobile token first
+  let session = await getMobileSession(req);
+
+  // Fall back to cookie-based session
+  if (!session) {
+    const webSession = await auth.api.getSession({ headers: await headers() });
+    if (webSession) {
+      session = { user: webSession.user } as any;
+    }
+  }
+
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -66,7 +77,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Try mobile token first
+  let session = await getMobileSession(req);
+
+  // Fall back to cookie-based session
+  if (!session) {
+    const webSession = await auth.api.getSession({ headers: await headers() });
+    if (webSession) {
+      session = { user: webSession.user } as any;
+    }
+  }
+
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

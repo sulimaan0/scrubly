@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { getMobileSession } from "@/lib/mobile-auth";
 
-export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
+export async function GET(req: NextRequest) {
+  // Try mobile token first
+  let session = await getMobileSession(req);
+
+  // Fall back to cookie-based session
+  if (!session) {
+    const webSession = await auth.api.getSession({ headers: await headers() });
+    if (webSession) {
+      session = { user: webSession.user } as any;
+    }
+  }
+
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -19,7 +30,17 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Try mobile token first
+  let session = await getMobileSession(req);
+
+  // Fall back to cookie-based session
+  if (!session) {
+    const webSession = await auth.api.getSession({ headers: await headers() });
+    if (webSession) {
+      session = { user: webSession.user } as any;
+    }
+  }
+
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

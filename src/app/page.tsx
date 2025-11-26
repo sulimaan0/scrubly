@@ -44,14 +44,14 @@ export default function HomePage() {
 
               {/* Postcode Input */}
               <form action="/booking" method="GET" className="max-w-md mx-auto mb-8">
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Input
                     name="postcode"
-                    placeholder="Enter your postcode"
-                    className="h-14 text-base px-5 bg-secondary/50 border-0 focus-visible:ring-1"
+                    placeholder="Your postcode"
+                    className="h-14 sm:h-14 text-base px-5 bg-secondary/50 border-0 focus-visible:ring-1"
                     required
                   />
-                  <Button type="submit" size="lg" className="h-14 px-8">
+                  <Button type="submit" size="lg" className="h-14 sm:h-14 px-8 w-full sm:w-auto">
                     Get started
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -59,7 +59,7 @@ export default function HomePage() {
               </form>
 
               {/* Trust Indicators */}
-              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Check className="h-4 w-4" />
                   <span>Vetted cleaners</span>
