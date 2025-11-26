@@ -20,28 +20,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email already verified" }, { status: 400 });
     }
 
-    // Generate a new verification token
-    const token = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate 6-digit verification code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-    // Store the token in the database
+    // Delete any existing verification codes for this email
+    await db.verification.deleteMany({
+      where: { identifier: user.email },
+    });
+
+    // Store the verification code
     await db.verification.create({
       data: {
         id: crypto.randomUUID(),
         identifier: user.email,
-        value: token,
+        value: code,
         expiresAt,
       },
     });
 
-    // Create verification URL
-    const baseURL = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const verificationUrl = `${baseURL}/api/auth/verify-email?token=${token}&identifier=${encodeURIComponent(user.email)}`;
-
     // Send the verification email
     const emailContent = VerificationEmail({
       name: user.name,
-      verificationUrl,
+      code,
     });
 
     await resend.emails.send({
