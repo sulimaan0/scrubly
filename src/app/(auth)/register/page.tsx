@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { signUp, signIn } from "@/lib/auth-client";
+import { signUp } from "@/lib/auth-client";
 
 function RegisterForm() {
   const searchParams = useSearchParams();
@@ -69,47 +69,18 @@ function RegisterForm() {
 
       console.log("[REGISTER] Role set successfully to:", formData.role);
 
-      // Step 3: Handle post-registration flow based on role
-      if (formData.role === "CLEANER") {
-        // Cleaners: Auto-login and redirect to dashboard immediately
-        console.log("[REGISTER] Cleaner registration, auto-logging in");
+      // Step 3: Send verification code (required for all users)
+      await fetch("/api/auth/send-verification-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
 
-        const signInResult = await signIn.email({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (signInResult.error) {
-          console.error("[REGISTER] Auto sign-in failed:", signInResult.error);
-          setError("Registration successful but sign-in failed. Please sign in manually.");
-          return;
-        }
-
-        // Send verification email in background (optional, doesn't block access)
-        fetch("/api/auth/send-verification-code", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: formData.email }),
-        }).catch(err => console.error("Failed to send verification email:", err));
-
-        // Wait for session to establish
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        console.log("[REGISTER] Redirecting cleaner to dashboard");
-        window.location.href = "/dashboard/cleaner";
-      } else {
-        // Customers: Require email verification before access
-        await fetch("/api/auth/send-verification-code", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: formData.email }),
-        });
-
-        console.log("[REGISTER] Registration successful, redirecting to verify email page");
-        window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
-      }
+      console.log("[REGISTER] Registration successful, redirecting to verify email page");
+      // Redirect to verify email page - role will be checked there for proper dashboard redirect
+      window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
     } catch (err) {
       console.error("[REGISTER] Registration error:", err);
       setError("An error occurred");
