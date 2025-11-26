@@ -47,7 +47,8 @@ function RegisterForm() {
       console.log("[REGISTER] User created successfully");
 
       // Step 2: Update role and create cleaner profile (no auth required)
-      await fetch("/api/users/set-role", {
+      console.log("[REGISTER] Setting role to:", formData.role);
+      const roleResponse = await fetch("/api/users/set-role", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,6 +60,15 @@ function RegisterForm() {
         }),
       });
 
+      if (!roleResponse.ok) {
+        const roleError = await roleResponse.json();
+        console.error("[REGISTER] Failed to set role:", roleError);
+        setError("Failed to set user role. Please contact support.");
+        return;
+      }
+
+      console.log("[REGISTER] Role set successfully to:", formData.role);
+
       // Step 3: Send verification code
       await fetch("/api/auth/send-verification-code", {
         method: "POST",
@@ -69,8 +79,8 @@ function RegisterForm() {
       });
 
       console.log("[REGISTER] Registration successful, redirecting to verify email page");
-      // Redirect to verify email page
-      window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}`;
+      // Redirect to verify email page with role parameter for debugging
+      window.location.href = `/verify-email?email=${encodeURIComponent(formData.email)}&role=${formData.role}`;
     } catch (err) {
       console.error("[REGISTER] Registration error:", err);
       setError("An error occurred");

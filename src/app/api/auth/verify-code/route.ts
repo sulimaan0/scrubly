@@ -52,6 +52,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log("[VERIFY] User found:", { id: user.id, email: user.email, role: user.role });
+
     // Update user to verified
     await db.user.update({
       where: { email },
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
       where: { id: verification.id },
     });
 
-    console.log("[VERIFY] Email verified successfully for:", email);
+    console.log("[VERIFY] Email verified successfully for:", email, "with role:", user.role);
 
     // Create a session for the user manually
     const sessionToken = crypto.randomUUID();
