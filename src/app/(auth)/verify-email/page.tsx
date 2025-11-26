@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -198,5 +198,17 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    }>
+      <VerifyEmailForm />
+    </Suspense>
   );
 }
