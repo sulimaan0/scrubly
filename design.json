@@ -1,0 +1,525 @@
+{
+    "dashboard": {
+      "title": "Demographics Report",
+      "layout": {
+        "container": {
+          "backgroundColor": "white",
+          "borderRadius": "24px",
+          "padding": "32px",
+          "maxWidth": "1200px",
+          "boxShadow": "0 20px 60px rgba(0, 0, 0, 0.1)"
+        },
+        "background": {
+          "gradient": "linear-gradient(135deg, #6B5FED 0%, #4F46E5 50%, #3B82F6 100%)"
+        }
+      },
+      "header": {
+        "title": {
+          "text": "Demographics Report",
+          "fontSize": "32px",
+          "fontWeight": "700",
+          "color": "#1A1A1A"
+        },
+        "actions": {
+          "search": {
+            "icon": "search",
+            "backgroundColor": "transparent"
+          },
+          "customize": {
+            "text": "Customize",
+            "icon": "sliders",
+            "backgroundColor": "#F3F4F6",
+            "borderRadius": "8px",
+            "padding": "8px 16px"
+          },
+          "addNew": {
+            "text": "Add New",
+            "icon": "upload",
+            "backgroundColor": "#F3F4F6",
+            "borderRadius": "8px",
+            "padding": "8px 16px"
+          }
+        }
+      },
+      "sidebar": {
+        "width": "80px",
+        "backgroundColor": "#FAFAFA",
+        "borderRadius": "16px 0 0 16px",
+        "items": [
+          {
+            "icon": "home",
+            "active": true,
+            "color": "#6B5FED"
+          },
+          {
+            "icon": "chart",
+            "active": false,
+            "color": "#9CA3AF"
+          },
+          {
+            "icon": "users",
+            "active": false,
+            "color": "#9CA3AF"
+          },
+          {
+            "icon": "calendar",
+            "active": false,
+            "color": "#9CA3AF"
+          },
+          {
+            "icon": "zap",
+            "active": false,
+            "color": "#9CA3AF"
+          },
+          {
+            "icon": "bell",
+            "active": false,
+            "color": "#9CA3AF"
+          }
+        ],
+        "bottomItems": [
+          {
+            "icon": "settings",
+            "color": "#9CA3AF"
+          },
+          {
+            "type": "avatar",
+            "image": "user-profile.jpg",
+            "borderRadius": "50%",
+            "size": "40px"
+          }
+        ]
+      },
+      "metricsCards": {
+        "layout": {
+          "display": "grid",
+          "gridTemplateColumns": "repeat(4, 1fr)",
+          "gap": "24px",
+          "marginBottom": "32px"
+        },
+        "cards": [
+          {
+            "title": "Audience",
+            "badge": {
+              "text": "New",
+              "backgroundColor": "#EEF2FF",
+              "color": "#6B5FED",
+              "borderRadius": "4px",
+              "padding": "2px 8px",
+              "fontSize": "12px"
+            },
+            "value": "1,878",
+            "trend": {
+              "direction": "up",
+              "percentage": "+12%",
+              "text": "vs last month",
+              "color": "#10B981"
+            },
+            "icon": "users",
+            "iconColor": "#9CA3AF",
+            "backgroundColor": "white",
+            "borderRadius": "16px",
+            "padding": "24px",
+            "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.05)"
+          },
+          {
+            "title": "Visitors",
+            "value": "21,022",
+            "trend": {
+              "direction": "down",
+              "percentage": "-8%",
+              "text": "vs last month",
+              "color": "#EF4444"
+            },
+            "icon": "eye",
+            "iconColor": "#9CA3AF",
+            "backgroundColor": "white",
+            "borderRadius": "16px",
+            "padding": "24px",
+            "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.05)"
+          },
+          {
+            "title": "Conversion",
+            "value": "9,881,118",
+            "trend": {
+              "direction": "up",
+              "percentage": "+8.9%",
+              "text": "vs last month",
+              "color": "#10B981"
+            },
+            "icon": "grid",
+            "iconColor": "#9CA3AF",
+            "backgroundColor": "white",
+            "borderRadius": "16px",
+            "padding": "24px",
+            "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.05)"
+          },
+          {
+            "title": "Total Rate",
+            "badge": {
+              "text": "Beta",
+              "backgroundColor": "#FEF3F2",
+              "color": "#EF4444",
+              "borderRadius": "4px",
+              "padding": "2px 8px",
+              "fontSize": "12px"
+            },
+            "value": "187%",
+            "trend": {
+              "direction": "up",
+              "percentage": "+77%",
+              "text": "vs last month",
+              "color": "#10B981"
+            },
+            "icon": "dollar-sign",
+            "iconColor": "#9CA3AF",
+            "backgroundColor": "white",
+            "borderRadius": "16px",
+            "padding": "24px",
+            "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.05)"
+          }
+        ],
+        "typography": {
+          "title": {
+            "fontSize": "14px",
+            "color": "#6B7280",
+            "fontWeight": "500"
+          },
+          "value": {
+            "fontSize": "36px",
+            "color": "#1A1A1A",
+            "fontWeight": "700"
+          },
+          "trend": {
+            "fontSize": "13px",
+            "fontWeight": "500"
+          }
+        }
+      },
+      "targetDemographics": {
+        "header": {
+          "title": "Target Demographics",
+          "badge": {
+            "text": "Beta",
+            "backgroundColor": "#EEF2FF",
+            "color": "#6B5FED",
+            "borderRadius": "12px",
+            "padding": "4px 12px",
+            "fontSize": "12px"
+          },
+          "actions": [
+            {
+              "icon": "calendar",
+              "backgroundColor": "#F3F4F6",
+              "borderRadius": "8px"
+            },
+            {
+              "icon": "settings",
+              "backgroundColor": "#F3F4F6",
+              "borderRadius": "8px"
+            },
+            {
+              "text": "Add User",
+              "icon": "plus",
+              "backgroundColor": "#6B5FED",
+              "color": "white",
+              "borderRadius": "8px",
+              "padding": "10px 20px"
+            }
+          ]
+        },
+        "content": {
+          "display": "grid",
+          "gridTemplateColumns": "2fr 1fr",
+          "gap": "32px",
+          "backgroundColor": "white",
+          "borderRadius": "16px",
+          "padding": "32px",
+          "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.05)"
+        },
+        "map": {
+          "type": "world-map",
+          "style": "dotted",
+          "dotColor": "#D1D5DB",
+          "dotSize": "2px",
+          "dotSpacing": "6px",
+          "regions": [
+            {
+              "continent": "Europe",
+              "color": "#E0E7FF",
+              "activeColor": "#6B5FED"
+            },
+            {
+              "continent": "Asia",
+              "color": "#E0E7FF",
+              "activeColor": "#6B5FED"
+            },
+            {
+              "continent": "Africa",
+              "color": "#E0E7FF",
+              "activeColor": "#6B5FED"
+            },
+            {
+              "continent": "America",
+              "color": "#E0E7FF",
+              "activeColor": "#6B5FED"
+            }
+          ],
+          "markers": [
+            {
+              "location": "North America East",
+              "size": "large",
+              "color": "#6B5FED",
+              "pulseEffect": true,
+              "opacity": 0.3
+            },
+            {
+              "location": "Europe West",
+              "size": "medium",
+              "color": "#6B5FED",
+              "pulseEffect": true,
+              "opacity": 0.3
+            },
+            {
+              "location": "Asia East",
+              "size": "medium",
+              "color": "#6B5FED",
+              "pulseEffect": true,
+              "opacity": 0.3
+            },
+            {
+              "location": "South America",
+              "size": "medium",
+              "color": "#6B5FED",
+              "pulseEffect": true,
+              "opacity": 0.3
+            },
+            {
+              "location": "Asia Southeast",
+              "size": "small",
+              "color": "#6B5FED",
+              "pulseEffect": true,
+              "opacity": 0.3
+            },
+            {
+              "location": "Oceania",
+              "size": "small",
+              "color": "#6B5FED",
+              "pulseEffect": true,
+              "opacity": 0.3
+            }
+          ],
+          "legend": {
+            "position": "bottom-left",
+            "items": [
+              {
+                "text": "Europe",
+                "color": "#D1D5DB",
+                "dotSize": "8px"
+              },
+              {
+                "text": "Asia",
+                "color": "#D1D5DB",
+                "dotSize": "8px"
+              },
+              {
+                "text": "Africa",
+                "color": "#D1D5DB",
+                "dotSize": "8px"
+              },
+              {
+                "text": "America",
+                "color": "#D1D5DB",
+                "dotSize": "8px"
+              }
+            ],
+            "fontSize": "13px",
+            "color": "#6B7280"
+          },
+          "controls": {
+            "zoomIn": {
+              "icon": "plus",
+              "position": "bottom-right",
+              "backgroundColor": "white",
+              "border": "1px solid #E5E7EB",
+              "borderRadius": "8px"
+            },
+            "zoomOut": {
+              "icon": "minus",
+              "position": "bottom-right",
+              "backgroundColor": "white",
+              "border": "1px solid #E5E7EB",
+              "borderRadius": "8px"
+            }
+          },
+          "iconPosition": {
+            "icon": "zap",
+            "position": "top-left",
+            "color": "#1A1A1A"
+          }
+        },
+        "statistics": {
+          "globalCount": {
+            "value": "98,2K",
+            "label": "Global customers worldwide",
+            "fontSize": {
+              "value": "56px",
+              "label": "14px"
+            },
+            "fontWeight": {
+              "value": "700",
+              "label": "400"
+            },
+            "color": {
+              "value": "#1A1A1A",
+              "label": "#6B7280"
+            },
+            "marginBottom": "32px"
+          },
+          "countries": [
+            {
+              "name": "United States",
+              "flag": "🇺🇸",
+              "percentage": "90%",
+              "barColor": "#6B5FED",
+              "barHeight": "8px",
+              "barRadius": "4px"
+            },
+            {
+              "name": "Brazil",
+              "flag": "🇧🇷",
+              "percentage": "75%",
+              "barColor": "#6B5FED",
+              "barHeight": "8px",
+              "barRadius": "4px"
+            },
+            {
+              "name": "Japan",
+              "flag": "🇯🇵",
+              "percentage": "40%",
+              "barColor": "#6B5FED",
+              "barHeight": "8px",
+              "barRadius": "4px"
+            },
+            {
+              "name": "Canada",
+              "flag": "🇨🇦",
+              "percentage": "30%",
+              "barColor": "#6B5FED",
+              "barHeight": "8px",
+              "barRadius": "4px"
+            },
+            {
+              "name": "France",
+              "flag": "🇫🇷",
+              "percentage": "15%",
+              "barColor": "#6B5FED",
+              "barHeight": "8px",
+              "barRadius": "4px"
+            }
+          ],
+          "countryItem": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": "12px",
+            "marginBottom": "16px",
+            "flag": {
+              "width": "24px",
+              "height": "24px",
+              "borderRadius": "50%"
+            },
+            "name": {
+              "fontSize": "14px",
+              "color": "#1A1A1A",
+              "fontWeight": "500",
+              "flex": "1"
+            },
+            "percentage": {
+              "fontSize": "14px",
+              "color": "#6B7280",
+              "fontWeight": "600"
+            },
+            "bar": {
+              "backgroundColor": "#F3F4F6",
+              "borderRadius": "4px",
+              "height": "8px",
+              "marginTop": "8px"
+            }
+          },
+          "footer": {
+            "text": "See All Demographics",
+            "icon": "arrow-right",
+            "color": "#6B5FED",
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "marginTop": "24px",
+            "cursor": "pointer"
+          }
+        }
+      },
+      "colorPalette": {
+        "primary": "#6B5FED",
+        "primaryLight": "#EEF2FF",
+        "secondary": "#3B82F6",
+        "success": "#10B981",
+        "danger": "#EF4444",
+        "warning": "#F59E0B",
+        "text": {
+          "primary": "#1A1A1A",
+          "secondary": "#6B7280",
+          "tertiary": "#9CA3AF"
+        },
+        "background": {
+          "white": "#FFFFFF",
+          "gray50": "#FAFAFA",
+          "gray100": "#F3F4F6",
+          "gray200": "#E5E7EB",
+          "gray300": "#D1D5DB"
+        }
+      },
+      "typography": {
+        "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": {
+          "xs": "12px",
+          "sm": "13px",
+          "base": "14px",
+          "lg": "16px",
+          "xl": "18px",
+          "2xl": "24px",
+          "3xl": "32px",
+          "4xl": "36px",
+          "5xl": "48px",
+          "6xl": "56px"
+        },
+        "fontWeight": {
+          "normal": "400",
+          "medium": "500",
+          "semibold": "600",
+          "bold": "700"
+        }
+      },
+      "spacing": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
+        "xl": "32px",
+        "2xl": "48px"
+      },
+      "borderRadius": {
+        "sm": "4px",
+        "md": "8px",
+        "lg": "12px",
+        "xl": "16px",
+        "2xl": "24px",
+        "full": "9999px"
+      },
+      "shadows": {
+        "sm": "0 1px 3px rgba(0, 0, 0, 0.05)",
+        "md": "0 4px 6px rgba(0, 0, 0, 0.07)",
+        "lg": "0 10px 25px rgba(0, 0, 0, 0.1)",
+        "xl": "0 20px 60px rgba(0, 0, 0, 0.1)"
+      }
+    }
+  }

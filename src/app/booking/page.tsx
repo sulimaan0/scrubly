@@ -302,42 +302,42 @@ function BookingContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary/5">
       <Navbar />
 
       {/* Fixed Progress Bar */}
-      <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b border-border/40 shadow-sm">
-        <div className="container mx-auto px-4 py-4 max-w-2xl">
-          <div className="flex items-center justify-between mb-2">
+      <div className="sticky top-[72px] z-40 bg-white/98 backdrop-blur-lg border-b border-border/60 shadow-md">
+        <div className="container mx-auto px-6 py-6 max-w-3xl">
+          <div className="flex items-center justify-between mb-3">
             {STEPS.map((s, i) => (
               <div key={s} className="flex items-center">
                 <div className={cn(
-                  "flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-colors",
-                  i < step ? "bg-foreground text-background" :
-                  i === step ? "bg-foreground text-background" :
-                  "bg-secondary text-muted-foreground"
+                  "flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold transition-all",
+                  i < step ? "bg-gradient-to-r from-primary to-secondary text-white shadow-md" :
+                  i === step ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg scale-110" :
+                  "bg-gray-100 text-muted-foreground"
                 )}>
-                  {i < step ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : i + 1}
+                  {i < step ? <Check className="h-5 w-5" /> : i + 1}
                 </div>
                 {i < STEPS.length - 1 && (
                   <div className={cn(
-                    "w-8 sm:w-16 md:w-24 h-0.5 mx-1 sm:mx-2",
-                    i < step ? "bg-foreground" : "bg-secondary"
+                    "w-12 sm:w-20 md:w-28 h-1 mx-2 rounded-full",
+                    i < step ? "bg-gradient-to-r from-primary to-secondary" : "bg-gray-200"
                   )} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-muted-foreground px-1">
+          <div className="flex justify-between text-xs font-semibold text-muted-foreground px-1">
             {STEPS.map((s) => (
               <span key={s} className="hidden sm:inline">{s}</span>
             ))}
-            <span className="sm:hidden">{STEPS[step]}</span>
+            <span className="sm:hidden font-bold text-base text-foreground">{STEPS[step]}</span>
           </div>
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-6 py-12 max-w-6xl">
         <div className="flex flex-row gap-8">
           {/* Main content */}
           <div className="flex-1 max-w-2xl">
@@ -352,8 +352,8 @@ function BookingContent() {
               {step === 0 && (
                 <div className="space-y-8">
                   <div>
-                <h2 className="text-2xl font-semibold mb-2">Select your service</h2>
-                <p className="text-muted-foreground">Choose the type of cleaning you need</p>
+                <h2 className="text-4xl font-bold mb-3">Select your service</h2>
+                <p className="text-lg text-muted-foreground">Choose the type of cleaning you need</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -447,25 +447,28 @@ function BookingContent() {
                         });
                       }}
                       className={cn(
-                        "w-full p-4 rounded-xl border-2 text-left transition-all",
+                        "w-full p-6 rounded-2xl border-2 text-left transition-all",
                         formData.serviceType === service.value
-                          ? "border-foreground bg-secondary/50"
-                          : "border-border hover:border-foreground/30"
+                          ? "border-primary bg-primary/5 shadow-lg scale-105"
+                          : "border-border/40 hover:border-primary/40 hover:shadow-md bg-white"
                       )}
                     >
-                      <div className="font-medium">{service.label}</div>
-                      <div className="text-sm text-muted-foreground">{service.desc}</div>
+                      <div className="font-bold text-xl mb-2">{service.label}</div>
+                      <div className="text-sm text-muted-foreground font-medium">{service.desc}</div>
                       {service.value !== "STANDARD" && service.value !== "OFFICE" && (
-                        <div className="text-xs text-green-600 mt-1">Includes extras</div>
+                        <div className="text-xs text-success font-semibold mt-3 flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          Includes extras
+                        </div>
                       )}
                     </button>
                     {/* Hover tooltip */}
-                    <div className="absolute left-0 right-0 top-full mt-2 p-4 bg-white rounded-xl border shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                      <div className="text-sm font-medium mb-2">What's included:</div>
-                      <ul className="text-xs text-muted-foreground space-y-1">
+                    <div className="absolute left-0 right-0 top-full mt-3 p-6 bg-white rounded-2xl border border-border/40 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                      <div className="text-sm font-bold mb-3">What's included:</div>
+                      <ul className="text-sm text-muted-foreground space-y-2">
                         {service.includes.map((item, i) => (
                           <li key={i} className="flex items-start gap-2">
-                            <span className="text-green-500 mt-0.5">✓</span>
+                            <span className="text-success mt-0.5">✓</span>
                             {item}
                           </li>
                         ))}
@@ -476,14 +479,14 @@ function BookingContent() {
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-3 block">Add extras</Label>
-                <div className="space-y-3">
+                <Label className="text-xl font-bold mb-4 block">Add extras</Label>
+                <div className="space-y-4">
                   {Object.entries(
                     formData.serviceType === "OFFICE" ? OFFICE_EXTRAS_PRICES : EXTRAS_PRICES
                   ).map(([key, extraPrice]) => (
                     <label
                       key={key}
-                      className="flex items-center justify-between p-3 rounded-xl border hover:bg-secondary/30 cursor-pointer transition-colors"
+                      className="flex items-center justify-between p-5 rounded-2xl border-2 border-border/40 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all bg-white"
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
@@ -498,9 +501,9 @@ function BookingContent() {
                             });
                           }}
                         />
-                        <span className="text-sm capitalize">{key.replace(/-/g, " ")}</span>
+                        <span className="text-base font-semibold capitalize">{key.replace(/-/g, " ")}</span>
                       </div>
-                      <span className="text-sm text-muted-foreground">+{formatPrice(extraPrice)}</span>
+                      <span className="text-base font-bold text-primary">+{formatPrice(extraPrice)}</span>
                     </label>
                   ))}
                 </div>
@@ -511,8 +514,8 @@ function BookingContent() {
           {step === 1 && (
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl font-semibold mb-2">Property details</h2>
-                <p className="text-muted-foreground">Tell us about your space</p>
+                <h2 className="text-4xl font-bold mb-3">Property details</h2>
+                <p className="text-lg text-muted-foreground">Tell us about your space</p>
               </div>
 
               <div className="space-y-4">

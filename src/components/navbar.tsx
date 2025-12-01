@@ -65,21 +65,21 @@ export function Navbar() {
   const isLoggedIn = hasMounted && !isPending && session && !error;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-border/40">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-lg border-b border-border/60 shadow-sm">
+      <div className="container mx-auto px-6">
+        <div className="flex h-[72px] items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="font-semibold text-xl tracking-tight">
+          <Link href="/" className="font-bold text-2xl tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent hover:opacity-80 transition-opacity">
             Scrubly
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-8">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                   Services
-                  <ChevronDown className="h-3.5 w-3.5" />
+                  <ChevronDown className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
@@ -110,20 +110,20 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link href="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               How It Works
             </Link>
-            <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Pricing
             </Link>
-            <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               About
             </Link>
-            <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Contact
             </Link>
             {isLoggedIn && (
-              <Link href={getDashboardUrl()} className="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1.5">
+              <Link href={getDashboardUrl()} className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-2">
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
@@ -133,16 +133,16 @@ export function Navbar() {
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-4">
             {!hasMounted || isPending ? (
-              <div className="h-9 w-20 bg-muted animate-pulse rounded-lg" />
+              <div className="h-10 w-24 bg-muted/50 animate-pulse rounded-xl" />
             ) : isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-colors">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                  <button className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors border border-border/40">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary text-white">
                       <User className="h-4 w-4" />
                     </div>
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium max-w-[120px] truncate">{session.user?.name || "Account"}</span>
+                      <span className="text-sm font-semibold max-w-[120px] truncate">{session.user?.name || "Account"}</span>
                       <span className="text-xs text-muted-foreground">My Account</span>
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -208,10 +208,10 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <>
-                <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                   Sign in
                 </Link>
-                <Button asChild size="sm" className="h-9 px-4">
+                <Button asChild size="sm" className="h-10 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all">
                   <Link href="/booking">Book Now</Link>
                 </Button>
               </>

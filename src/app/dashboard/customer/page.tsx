@@ -159,10 +159,10 @@ function CustomerDashboardContent() {
   const pastBookings = bookings.filter(b => new Date(b.date) < new Date() || b.status === "COMPLETED");
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary/5">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <main className="container mx-auto px-6 py-12 max-w-6xl">
         {/* Success Banner */}
         {successBannerVisible && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
@@ -183,88 +183,88 @@ function CustomerDashboardContent() {
         )}
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-2xl font-semibold">Your bookings</h1>
-            <p className="text-muted-foreground mt-1">Welcome back, {session?.user?.name}</p>
+            <h1 className="text-4xl font-bold mb-2">Your bookings</h1>
+            <p className="text-lg text-muted-foreground">Welcome back, {session?.user?.name}</p>
           </div>
-          <Button asChild className="w-full sm:w-auto h-12 sm:h-10">
+          <Button asChild size="lg" className="w-full sm:w-auto">
             <Link href="/booking">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5 mr-2" />
               New booking
             </Link>
           </Button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 sm:mb-10">
-          <div className="p-5 sm:p-6 rounded-2xl bg-secondary/50">
-            <div className="text-3xl font-semibold">{bookings.length}</div>
-            <div className="text-sm text-muted-foreground mt-1">Total bookings</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+          <div className="p-8 rounded-2xl bg-white border border-border/40 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">{bookings.length}</div>
+            <div className="text-sm font-medium text-muted-foreground">Total bookings</div>
           </div>
-          <div className="p-5 sm:p-6 rounded-2xl bg-secondary/50">
-            <div className="text-3xl font-semibold">{upcomingBookings.length}</div>
-            <div className="text-sm text-muted-foreground mt-1">Upcoming</div>
+          <div className="p-8 rounded-2xl bg-white border border-border/40 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">{upcomingBookings.length}</div>
+            <div className="text-sm font-medium text-muted-foreground">Upcoming</div>
           </div>
-          <div className="p-5 sm:p-6 rounded-2xl bg-secondary/50">
-            <div className="text-3xl font-semibold">{pastBookings.length}</div>
-            <div className="text-sm text-muted-foreground mt-1">Completed</div>
+          <div className="p-8 rounded-2xl bg-white border border-border/40 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">{pastBookings.length}</div>
+            <div className="text-sm font-medium text-muted-foreground">Completed</div>
           </div>
         </div>
 
         {/* Upcoming Bookings */}
-        <div className="mb-10">
-          <h2 className="text-lg font-semibold mb-4">Upcoming</h2>
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Upcoming</h2>
           {upcomingBookings.length === 0 ? (
-            <div className="text-center py-12 rounded-2xl border border-dashed">
-              <p className="text-muted-foreground mb-4">No upcoming bookings</p>
-              <Button asChild variant="outline">
+            <div className="text-center py-16 rounded-2xl border-2 border-dashed border-border/50 bg-white">
+              <p className="text-lg text-muted-foreground mb-6">No upcoming bookings</p>
+              <Button asChild variant="outline" size="lg">
                 <Link href="/booking">Book a clean</Link>
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {upcomingBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="p-5 sm:p-6 rounded-2xl border bg-white hover:shadow-md transition-shadow cursor-pointer"
+                  className="p-8 rounded-2xl border border-border/40 bg-white hover:shadow-lg hover:border-primary/20 transition-all cursor-pointer group"
                   onClick={() => setSelectedBooking(booking)}
                 >
-                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <h3 className="text-sm font-semibold">{formatServiceType(booking.serviceType)}</h3>
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusColor(booking.status)}`}>
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+                    <div className="space-y-4 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{formatServiceType(booking.serviceType)}</h3>
+                        <span className={`text-xs px-3 py-1.5 rounded-lg font-semibold ${statusColor(booking.status)}`}>
                           {formatStatus(booking.status)}
                         </span>
                         {booking.paymentStatus === "PAID" && (
-                          <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-green-100 text-green-700">
+                          <span className="text-xs px-3 py-1.5 rounded-lg font-semibold bg-green-100 text-green-700">
                             Paid
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-3 sm:gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {booking.city} {booking.postcode}
+                      <div className="flex flex-wrap gap-5 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          <span className="font-medium">{booking.city} {booking.postcode}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" />
-                          {formatDate(new Date(booking.date))}
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span className="font-medium">{formatDate(new Date(booking.date))}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" />
-                          {booking.timeSlot}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          <span className="font-medium">{booking.timeSlot}</span>
                         </div>
                       </div>
                       {booking.cleaner && (
-                        <div className="text-xs">
+                        <div className="text-sm">
                           <span className="text-muted-foreground">Cleaner: </span>
-                          <span className="font-medium">{booking.cleaner.name}</span>
+                          <span className="font-semibold">{booking.cleaner.name}</span>
                         </div>
                       )}
                     </div>
-                    <div className="text-lg font-semibold sm:text-right">{formatPrice(booking.price)}</div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent sm:text-right">{formatPrice(booking.price)}</div>
                   </div>
                 </div>
               ))}
@@ -275,21 +275,21 @@ function CustomerDashboardContent() {
         {/* Past Bookings */}
         {pastBookings.length > 0 && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">Past bookings</h2>
-            <div className="space-y-3">
+            <h2 className="text-2xl font-bold mb-6">Past bookings</h2>
+            <div className="space-y-4">
               {pastBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 cursor-pointer hover:bg-secondary/50 transition-colors"
+                  className="flex items-center justify-between p-6 rounded-2xl bg-white border border-border/40 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all"
                   onClick={() => setSelectedBooking(booking)}
                 >
                   <div>
-                    <div className="text-sm font-medium">{formatServiceType(booking.serviceType)}</div>
-                    <div className="text-xs text-muted-foreground">{formatDate(new Date(booking.date))}</div>
+                    <div className="text-base font-bold mb-1">{formatServiceType(booking.serviceType)}</div>
+                    <div className="text-sm text-muted-foreground font-medium">{formatDate(new Date(booking.date))}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium">{formatPrice(booking.price)}</div>
-                    <div className={`text-xs mt-1 ${booking.status === "COMPLETED" ? "text-green-600" : "text-muted-foreground"}`}>
+                    <div className="text-lg font-bold mb-1">{formatPrice(booking.price)}</div>
+                    <div className={`text-xs font-semibold ${booking.status === "COMPLETED" ? "text-green-600" : "text-muted-foreground"}`}>
                       {formatStatus(booking.status)}
                     </div>
                   </div>
@@ -301,29 +301,29 @@ function CustomerDashboardContent() {
 
         {/* Booking Detail Modal */}
         {selectedBooking && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedBooking(null)}>
-            <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="p-5 sm:p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-                <h2 className="text-lg font-semibold">Booking Details</h2>
-                <button onClick={() => setSelectedBooking(null)} className="text-muted-foreground hover:text-foreground p-2 -mr-2">
-                  <X className="h-5 w-5" />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSelectedBooking(null)}>
+            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="p-8 border-b border-border/40 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-3xl">
+                <h2 className="text-2xl font-bold">Booking Details</h2>
+                <button onClick={() => setSelectedBooking(null)} className="text-muted-foreground hover:text-foreground p-2 -mr-2 hover:bg-gray-100 rounded-xl transition-colors">
+                  <X className="h-6 w-6" />
                 </button>
               </div>
 
-              <div className="p-5 sm:p-6 space-y-6">
+              <div className="p-8 space-y-8">
                 {/* Service Info */}
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="font-semibold">{formatServiceType(selectedBooking.serviceType)}</h3>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusColor(selectedBooking.status)}`}>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-xl font-bold">{formatServiceType(selectedBooking.serviceType)}</h3>
+                    <span className={`text-xs px-3 py-1.5 rounded-lg font-semibold ${statusColor(selectedBooking.status)}`}>
                       {formatStatus(selectedBooking.status)}
                     </span>
                   </div>
-                  <div className="text-2xl font-semibold">{formatPrice(selectedBooking.price)}</div>
+                  <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{formatPrice(selectedBooking.price)}</div>
                 </div>
 
                 {/* Details Grid */}
-                <div className="space-y-4 text-sm">
+                <div className="space-y-6 text-sm">
                   <div className="flex items-start gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <div>
@@ -394,10 +394,11 @@ function CustomerDashboardContent() {
                 {selectedBooking.status !== "CANCELLED" &&
                  selectedBooking.status !== "COMPLETED" &&
                  selectedBooking.status !== "IN_PROGRESS" && (
-                  <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+                  <div className="border-t border-border/40 pt-6">
                     <Button
                       variant="destructive"
-                      className="w-full h-12 sm:h-10"
+                      size="lg"
+                      className="w-full"
                       onClick={() => handleCancelBooking(selectedBooking.id)}
                       disabled={cancellingBooking}
                     >
